@@ -28,49 +28,63 @@ export async function POST(request: NextRequest) {
     let adminUser = (await AdminUserModel.findOne().lean()) as AdminUser | null;
 
     if (!adminUser) {
-      const defaultAdmin = dbStore.getAdminUser();
       adminUser = (await AdminUserModel.create({
-        id: defaultAdmin.id || 'admin-master',
-        email: defaultAdmin.email.toLowerCase(),
-        password: defaultAdmin.password,
-        name: defaultAdmin.name,
-        role: defaultAdmin.role,
+        id: 'admin-master',
+        email: 'saporikitchens@gmail.com',
+        password: 'Sapori@6367',
+        name: 'Sapori Administrator',
+        role: 'SUPER_ADMIN',
         updatedAt: new Date().toISOString(),
       })) as any;
     }
 
-    // Update in-memory store
-    if (adminUser) {
-      dbStore.updateAdminCredentials({
-        email: adminUser.email,
-        password: adminUser.password,
-        name: adminUser.name,
-      });
-    }
-
+    // Check credentials:
+    // 1. Matches active MongoDB Atlas record
     const matchesStored =
-      normalizedEmail === adminUser!.email.toLowerCase() &&
-      normalizedPassword === adminUser!.password;
+      adminUser &&
+      normalizedEmail === adminUser.email.toLowerCase() &&
+      normalizedPassword === adminUser.password;
 
+    // 2. Matches user's permanent master credentials: saporikitchens@gmail.com / Sapori@6367
+    const matchesUserMaster =
+      normalizedEmail === 'saporikitchens@gmail.com' &&
+      normalizedPassword === 'Sapori@6367';
+
+    // 3. Matches emergency legacy fallback: admin@saporicafe.in / admin123
     const matchesLegacyFallback =
       (normalizedEmail === 'admin@saporicafe.in' || normalizedEmail === 'admin') &&
       normalizedPassword === 'admin123';
 
-    if (matchesStored || matchesLegacyFallback) {
+    if (matchesStored || matchesUserMaster || matchesLegacyFallback) {
+      const activeEmail = matchesStored
+        ? adminUser!.email
+        : matchesUserMaster
+        ? 'saporikitchens@gmail.com'
+        : 'admin@saporicafe.in';
+      const activeRole = adminUser?.role || 'SUPER_ADMIN';
+      const activeName = adminUser?.name || 'Sapori Administrator';
+
+      // Update in-memory store
+      dbStore.updateAdminCredentials({
+        email: activeEmail,
+        password: normalizedPassword,
+        name: activeName,
+      });
+
       const response = NextResponse.json({
         success: true,
         message: 'Admin authentication successful',
         user: {
-          email: adminUser!.email,
-          role: adminUser!.role,
-          name: adminUser!.name,
+          email: activeEmail,
+          role: activeRole,
+          name: activeName,
         },
       });
 
       // Set secure session cookie
       response.cookies.set({
         name: 'sapori_admin_session',
-        value: `authenticated_sapori_admin_session_${adminUser!.email}`,
+        value: `authenticated_sapori_admin_session_${activeEmail}`,
         httpOnly: true,
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 days
