@@ -10,31 +10,19 @@ import { toast } from '@/lib/toast';
 export default function AdminLoginPage() {
   const router = useRouter();
 
-  const DEFAULT_EMAIL = 'admin@saporicafe.in';
-  const DEFAULT_PASSWORD = 'admin123';
-
-  const [email, setEmail] = useState(DEFAULT_EMAIL);
-  const [password, setPassword] = useState(DEFAULT_PASSWORD);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Auto-fill saved admin email from local storage if previously modified
+  // Auto-fill saved admin email from local storage if previously saved
   React.useEffect(() => {
     const savedEmail = localStorage.getItem('sapori_admin_email');
     if (savedEmail) {
       setEmail(savedEmail);
-      if (savedEmail !== DEFAULT_EMAIL) {
-        setPassword(''); // Clear default password so user enters their custom password
-      }
     }
   }, []);
-
-  const handleAutoFill = () => {
-    setEmail(DEFAULT_EMAIL);
-    setPassword(DEFAULT_PASSWORD);
-    setErrorMsg('');
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +37,7 @@ export default function AdminLoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
       });
 
       const data = await res.json();
@@ -90,34 +78,6 @@ export default function AdminLoginPage() {
           <p className="text-xs text-[#15370D]/75">
             Internal Restaurant Management, POS & Kitchen Display
           </p>
-        </div>
-
-        {/* Default Credentials Callout Box */}
-        <div className="bg-[#FFFFFF] border-2 border-[#15370D] rounded-2xl p-4 space-y-2.5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1.5 text-xs font-black uppercase tracking-wider text-[#15370D]">
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Default Login Credentials</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleAutoFill}
-              className="text-[11px] font-bold uppercase underline text-[#15370D] hover:opacity-80"
-            >
-              Auto-Fill
-            </button>
-          </div>
-
-          <div className="bg-[#F5EFE1] p-3 rounded-xl border border-[#15370D]/15 text-xs text-[#15370D] space-y-1 font-mono">
-            <div className="flex justify-between">
-              <span className="font-sans font-semibold text-[#15370D]/70">Email ID:</span>
-              <span className="font-bold">admin@saporicafe.in</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-sans font-semibold text-[#15370D]/70">Password:</span>
-              <span className="font-bold">admin123</span>
-            </div>
-          </div>
         </div>
 
         {/* Login Card */}

@@ -21,6 +21,7 @@
 # Local Runtime Data & State
 /.data/
 /public/uploads/
+scratch/
 
 # Environment Variables & Secrets (CRITICAL)
 .env
