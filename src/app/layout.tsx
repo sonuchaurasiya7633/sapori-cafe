@@ -7,8 +7,20 @@ import { dbStore } from '@/lib/db/store';
 import { getBaseUrl, getRestaurantSchema, getWebSiteSchema } from '@/lib/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = dbStore.getSettings();
-  const baseUrl = getBaseUrl();
+  let settings = dbStore.getSettings();
+  try {
+    const { connectToDatabase } = await import('@/lib/db/mongodb');
+    const { SiteSettingsModel } = await import('@/lib/db/models');
+    await connectToDatabase();
+    const dbDoc = await SiteSettingsModel.findOne().lean();
+    if (dbDoc) {
+      settings = { ...settings, ...dbDoc };
+    }
+  } catch (e) {
+    // fallback to in-memory store
+  }
+
+  const baseUrl = getBaseUrl(settings);
 
   const titleTemplate =
     settings.metaTitleTemplate || '%s | SAPORI CAFÉ & EATERY | Raja Park, Jaipur';
@@ -89,12 +101,24 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = dbStore.getSettings();
+  let settings = dbStore.getSettings();
+  try {
+    const { connectToDatabase } = await import('@/lib/db/mongodb');
+    const { SiteSettingsModel } = await import('@/lib/db/models');
+    await connectToDatabase();
+    const dbDoc = await SiteSettingsModel.findOne().lean();
+    if (dbDoc) {
+      settings = { ...settings, ...dbDoc };
+    }
+  } catch (e) {
+    // fallback
+  }
+
   const restaurantSchema = getRestaurantSchema(settings);
   const websiteSchema = getWebSiteSchema(settings);
 

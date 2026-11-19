@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
 import { SiteSettings } from '@/types';
+import { connectToDatabase } from '@/lib/db/mongodb';
 import { SiteSettingsModel } from '@/lib/db/models';
 
 export async function GET() {
   try {
-    let settings = dbStore.getSettings();
-    try {
-      const dbSettings = await SiteSettingsModel.findOne().lean();
-      if (dbSettings) {
-        settings = dbStore.updateSettings(dbSettings as Partial<SiteSettings>);
-      }
-    } catch (dbErr) {
-      // Fallback to local store
+    await connectToDatabase();
+    const dbSettings = await SiteSettingsModel.findOne().lean();
+    if (dbSettings) {
+      const merged = { ...dbStore.getSettings(), ...dbSettings };
+      return NextResponse.json(merged);
     }
-    return NextResponse.json(settings);
+    return NextResponse.json(dbStore.getSettings());
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
+    console.error('GET /api/settings error:', error);
+    return NextResponse.json(dbStore.getSettings());
   }
 }
 
@@ -54,16 +53,36 @@ async function handleUpdate(request: NextRequest) {
       updates.deliveryRadiusKm = Math.max(1, Number(updates.deliveryRadiusKm) || 1);
     }
 
-    const updated = dbStore.updateSettings(updates);
-
-    // Persist to MongoDB Atlas
-    try {
-      await SiteSettingsModel.findOneAndUpdate({}, updates, { upsert: true, new: true });
-    } catch (dbErr: any) {
-      console.warn('MongoDB settings sync warning:', dbErr.message);
+    // Explicit string trim
+    if (typeof updates.googleVerificationCode === 'string') {
+      updates.googleVerificationCode = updates.googleVerificationCode.trim();
+    }
+    if (typeof updates.googleAnalyticsId === 'string') {
+      updates.googleAnalyticsId = updates.googleAnalyticsId.trim();
+    }
+    if (typeof updates.canonicalDomain === 'string') {
+      updates.canonicalDomain = updates.canonicalDomain.trim();
     }
 
-    return NextResponse.json({ success: true, settings: updated });
+    // Connect directly to MongoDB Atlas
+    await connectToDatabase();
+
+    // 1. Direct synchronous write to MongoDB Atlas
+    const savedDoc = await SiteSettingsModel.findOneAndUpdate(
+      {},
+      { $set: updates },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+
+    // 2. Synchronize in-memory store
+    const updated = dbStore.updateSettings(updates);
+
+    const mergedSettings = savedDoc ? { ...updated, ...savedDoc } : updated;
+
+    return NextResponse.json({
+      success: true,
+      settings: mergedSettings,
+    });
   } catch (error: any) {
     console.error('Settings update error:', error);
     return NextResponse.json(

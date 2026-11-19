@@ -75,4 +75,36 @@ describe('Store Settings & Operational Rules', () => {
       'https://res.cloudinary.com/drrfrsrl/image/upload/custom-hero.webp'
     );
   });
+
+  it('persists and retrieves Google Verification Code and GA4 Measurement ID via settings API', async () => {
+    const { PUT, GET } = await import('../../src/app/api/settings/route');
+    const { NextRequest } = await import('next/server');
+
+    const testGSC = `gsc-token-test-${Date.now()}`;
+    const testGA4 = 'G-TEST123456';
+
+    const putReq = new NextRequest('http://localhost:3000/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        googleVerificationCode: testGSC,
+        googleAnalyticsId: testGA4,
+        canonicalDomain: 'https://saporicafe.in',
+      }),
+    });
+
+    const putRes = await PUT(putReq);
+    const putData = await putRes.json();
+    expect(putRes.status).toBe(200);
+    expect(putData.success).toBe(true);
+    expect(putData.settings.googleVerificationCode).toBe(testGSC);
+    expect(putData.settings.googleAnalyticsId).toBe(testGA4);
+
+    // Now test GET returns the same persisted values
+    const getRes = await GET();
+    const getData = await getRes.json();
+    expect(getRes.status).toBe(200);
+    expect(getData.googleVerificationCode).toBe(testGSC);
+    expect(getData.googleAnalyticsId).toBe(testGA4);
+  });
 });

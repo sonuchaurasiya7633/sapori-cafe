@@ -1,33 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { connectToDatabase } from '@/lib/db/mongodb';
-import { SiteSettingsModel, MenuItemModel, CMSPageModel } from '@/lib/db/models';
+import { MenuItemModel, CMSPageModel } from '@/lib/db/models';
 import { dbStore } from '@/lib/db/store';
 
 describe('Live Admin to MongoDB Atlas Cloud Real-Time Sync', () => {
-  it('updates SiteSettings from Admin store and verifies direct persistence in MongoDB Atlas', async () => {
-    await connectToDatabase();
-
-    const testAnnouncement = `Complimentary Tasting Live Test ${Date.now()}`;
-    const testVerification = `gsc-verify-${Date.now()}`;
-
-    // Admin updates settings
-    dbStore.updateSettings({
-      announcementText: testAnnouncement,
-      googleVerificationCode: testVerification,
-      canonicalDomain: 'https://saporicafe.in',
-    });
-
-    // Wait a brief tick for async MongoDB sync
-    await new Promise((r) => setTimeout(r, 1200));
-
-    // Verify directly from MongoDB Atlas
-    const doc = await SiteSettingsModel.findOne().lean();
-    expect(doc).toBeDefined();
-    expect(doc?.announcementText).toBe(testAnnouncement);
-    expect(doc?.googleVerificationCode).toBe(testVerification);
-    expect(doc?.canonicalDomain).toBe('https://saporicafe.in');
-  }, 20000);
-
   it('updates Menu Item price and availability and verifies direct persistence in MongoDB Atlas', async () => {
     await connectToDatabase();
 

@@ -634,7 +634,6 @@ class SaporiDataStore {
     this.data.settings = { ...this.data.settings, ...updates };
     this.logAudit('UPDATE_SETTINGS', 'admin', updates);
     this.saveData(this.data);
-    syncToMongo('settings', 'upsert', {}, this.data.settings);
     return this.data.settings;
   }
 
