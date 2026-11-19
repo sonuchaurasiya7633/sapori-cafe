@@ -12,6 +12,7 @@ import {
   PaymentStatus,
   SiteSettings,
   TableReservation,
+  AdminUser,
 } from '@/types';
 import {
   DEFAULT_SITE_SETTINGS,
@@ -30,6 +31,7 @@ interface DatabaseSchema {
   reviews: CustomerReview[];
   settings: SiteSettings;
   cmsPages?: CMSPage[];
+  adminUser?: AdminUser;
   auditLogs: { timestamp: string; action: string; actor: string; details?: any }[];
 }
 
@@ -117,6 +119,17 @@ class SaporiDataStore {
           parsed.cmsPages = SEED_CMS_PAGES;
           this.saveData(parsed);
         }
+        if (!parsed.adminUser) {
+          parsed.adminUser = {
+            id: 'admin-master',
+            email: 'admin@saporicafe.in',
+            password: 'admin123',
+            name: 'Sapori Manager',
+            role: 'SUPER_ADMIN',
+            updatedAt: new Date().toISOString(),
+          };
+          this.saveData(parsed);
+        }
         return parsed;
       }
     } catch (e) {
@@ -133,6 +146,14 @@ class SaporiDataStore {
       reviews: INITIAL_REVIEWS,
       settings: DEFAULT_SITE_SETTINGS,
       cmsPages: SEED_CMS_PAGES,
+      adminUser: {
+        id: 'admin-master',
+        email: 'admin@saporicafe.in',
+        password: 'admin123',
+        name: 'Sapori Manager',
+        role: 'SUPER_ADMIN',
+        updatedAt: new Date().toISOString(),
+      },
       auditLogs: [
         {
           timestamp: new Date().toISOString(),
@@ -604,6 +625,40 @@ class SaporiDataStore {
   // --- AUDIT LOGS ---
   getAuditLogs() {
     return [...this.data.auditLogs].reverse();
+  }
+
+  // --- ADMIN AUTHENTICATION & CREDENTIALS ---
+  getAdminUser(): AdminUser {
+    if (!this.data.adminUser) {
+      this.data.adminUser = {
+        id: 'admin-master',
+        email: 'admin@saporicafe.in',
+        password: 'admin123',
+        name: 'Sapori Manager',
+        role: 'SUPER_ADMIN',
+        updatedAt: new Date().toISOString(),
+      };
+      this.saveData(this.data);
+    }
+    return { ...this.data.adminUser };
+  }
+
+  updateAdminCredentials(updates: { email?: string; password?: string; name?: string }): AdminUser {
+    const current = this.getAdminUser();
+    const updated: AdminUser = {
+      ...current,
+      ...(updates.email ? { email: updates.email.trim().toLowerCase() } : {}),
+      ...(updates.password ? { password: updates.password.trim() } : {}),
+      ...(updates.name ? { name: updates.name.trim() } : {}),
+      updatedAt: new Date().toISOString(),
+    };
+    this.data.adminUser = updated;
+    this.logAudit('CHANGE_ADMIN_CREDENTIALS', 'admin', {
+      updatedEmail: updated.email,
+      updatedName: updated.name,
+    });
+    this.saveData(this.data);
+    return updated;
   }
 
   private logAudit(action: string, actor: string, details?: any) {

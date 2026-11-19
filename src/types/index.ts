@@ -228,3 +228,12 @@ export interface CMSMediaAsset {
   uploadedAt: string;
   altText?: string;
 }
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  password?: string;
+  name: string;
+  role: string;
+  updatedAt: string;
+}

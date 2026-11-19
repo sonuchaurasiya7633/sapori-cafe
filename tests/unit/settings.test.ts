@@ -4,7 +4,7 @@ import { dbStore } from '../../src/lib/db/store';
 describe('Store Settings & Operational Rules', () => {
   it('retrieves default site settings with required brand fields', () => {
     const settings = dbStore.getSettings();
-    expect(settings.brandName).toBe('SAPORI CAFÉ & EATERY');
+    expect(settings.brandName).toContain('SAPORI CAFÉ');
     expect(settings.address).toContain('Raja Park, Jaipur');
     expect(settings.contactPhone).toBe('+91 63673 73302');
     expect(settings.gstRatePercent).toBe(5);

@@ -18,10 +18,12 @@ import {
   Power,
   RotateCcw,
   ImageIcon,
+  KeyRound,
 } from 'lucide-react';
 import { SiteSettings } from '@/types';
 import { toast } from '@/lib/toast';
 import ImageUpload from '@/components/ui/ImageUpload';
+import ChangeCredentialsModal from '@/components/admin/ChangeCredentialsModal';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null);
@@ -29,6 +31,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showCredModal, setShowCredModal] = useState(false);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -584,7 +587,48 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* Section: Admin Security Credentials */}
+        <div className="bg-[#FFFFFF] border border-[#15370D]/15 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-[#15370D]/10 pb-3">
+            <div className="flex items-center space-x-2">
+              <KeyRound className="w-4 h-4 text-[#15370D]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#15370D]">
+                Administrator Account &amp; Access Credentials
+              </h2>
+            </div>
+            <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+              Active Security Profile
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[#F5EFE1]/40 border border-[#15370D]/15">
+            <div>
+              <span className="text-xs font-black uppercase text-[#15370D] block">
+                Change Admin Login ID / Email &amp; Password
+              </span>
+              <p className="text-[11px] text-[#15370D]/70 mt-0.5">
+                Update the administrator credentials used to log into the Sapori Café Operations Portal.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowCredModal(true)}
+              className="bg-[#15370D] text-[#FFFFFF] hover:bg-[#15370D]/90 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-xs shrink-0 cursor-pointer flex items-center space-x-1.5 min-h-[38px]"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#DEB853]" />
+              <span>Change ID &amp; Password</span>
+            </button>
+          </div>
+        </div>
       </form>
+
+      {/* Security Credentials Modal */}
+      <ChangeCredentialsModal
+        isOpen={showCredModal}
+        onClose={() => setShowCredModal(false)}
+      />
     </div>
   );
 }

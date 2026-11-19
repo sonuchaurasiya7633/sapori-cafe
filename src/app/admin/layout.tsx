@@ -28,9 +28,11 @@ import {
   Clock,
   Sparkles,
   Globe,
+  KeyRound,
 } from 'lucide-react';
 import Logo from '@/components/ui/Logo';
 import { toast } from '@/lib/toast';
+import ChangeCredentialsModal from '@/components/admin/ChangeCredentialsModal';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,6 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [adminEmail, setAdminEmail] = useState('admin@saporicafe.in');
   const [globalSearch, setGlobalSearch] = useState('');
 
@@ -496,6 +499,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <span>Audit Logs</span>
                   </Link>
                   <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      setShowCredentialsModal(true);
+                    }}
+                    className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold text-[#15370D] hover:bg-[#F5EFE1] text-left cursor-pointer"
+                  >
+                    <KeyRound className="w-3.5 h-3.5 text-[#DEB853]" />
+                    <span>Change ID &amp; Password</span>
+                  </button>
+                  <button
                     onClick={handleLogout}
                     className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-bold text-[#15370D] hover:bg-[#F5EFE1] text-left"
                   >
@@ -513,6 +526,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="max-w-7xl mx-auto space-y-6">{children}</div>
         </main>
       </div>
+
+      {/* Security Credentials Modal */}
+      <ChangeCredentialsModal
+        isOpen={showCredentialsModal}
+        onClose={() => setShowCredentialsModal(false)}
+        onSuccess={(user) => setAdminEmail(user.email)}
+      />
     </div>
   );
 }

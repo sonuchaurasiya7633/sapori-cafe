@@ -19,6 +19,17 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Auto-fill saved admin email from local storage if previously modified
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem('sapori_admin_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      if (savedEmail !== DEFAULT_EMAIL) {
+        setPassword(''); // Clear default password so user enters their custom password
+      }
+    }
+  }, []);
+
   const handleAutoFill = () => {
     setEmail(DEFAULT_EMAIL);
     setPassword(DEFAULT_PASSWORD);

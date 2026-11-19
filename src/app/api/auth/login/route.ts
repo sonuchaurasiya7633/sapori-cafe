@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { dbStore } from '@/lib/db/store';
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,28 +8,30 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = (email || '').trim().toLowerCase();
     const normalizedPassword = (password || '').trim();
 
-    // Default admin credentials
-    const DEFAULT_ADMIN_EMAIL = 'admin@saporicafe.in';
-    const DEFAULT_ADMIN_PASSWORD = 'admin123';
+    // Retrieve active dynamic admin credentials
+    const adminUser = dbStore.getAdminUser();
 
-    if (
-      (normalizedEmail === DEFAULT_ADMIN_EMAIL && normalizedPassword === DEFAULT_ADMIN_PASSWORD) ||
-      (normalizedEmail === 'admin' && normalizedPassword === 'admin123')
-    ) {
+    const matchesStored =
+      normalizedEmail === adminUser.email.toLowerCase() && normalizedPassword === adminUser.password;
+    const matchesLegacyFallback =
+      (normalizedEmail === 'admin@saporicafe.in' || normalizedEmail === 'admin') &&
+      normalizedPassword === (adminUser.password || 'admin123');
+
+    if (matchesStored || matchesLegacyFallback) {
       const response = NextResponse.json({
         success: true,
         message: 'Admin authentication successful',
         user: {
-          email: DEFAULT_ADMIN_EMAIL,
-          role: 'SUPER_ADMIN',
-          name: 'Sapori Manager',
+          email: adminUser.email,
+          role: adminUser.role,
+          name: adminUser.name,
         },
       });
 
       // Set secure session cookie
       response.cookies.set({
         name: 'sapori_admin_session',
-        value: 'authenticated_sapori_admin_session_token_2026',
+        value: `authenticated_sapori_admin_session_${adminUser.email}`,
         httpOnly: true,
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Invalid credentials. Default: admin@saporicafe.in / admin123',
+        error: 'Invalid credentials. Please verify your administrator ID/email and password.',
       },
       { status: 401 }
     );

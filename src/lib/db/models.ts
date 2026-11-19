@@ -9,6 +9,7 @@ import {
   CustomerReview,
   SiteSettings,
   CMSPage,
+  AdminUser,
 } from '@/types';
 
 // ==========================================
@@ -320,6 +321,24 @@ export const SiteSettingsModel: Model<SiteSettings> =
 
 export const CMSPageModel: Model<CMSPage> =
   mongoose.models.CMSPage || mongoose.model<CMSPage>('CMSPage', CMSPageSchema);
+
+// ==========================================
+// 11. ADMIN USER SCHEMA
+// ==========================================
+const AdminUserSchema = new Schema<AdminUser>(
+  {
+    id: { type: String, required: true, unique: true, index: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password: { type: String, required: true },
+    name: { type: String, default: 'Sapori Manager' },
+    role: { type: String, default: 'SUPER_ADMIN' },
+    updatedAt: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+export const AdminUserModel: Model<AdminUser> =
+  mongoose.models.AdminUser || mongoose.model<AdminUser>('AdminUser', AdminUserSchema);
 
 export const AuditLogModel =
   mongoose.models.AuditLog || mongoose.model('AuditLog', AuditLogSchema);
