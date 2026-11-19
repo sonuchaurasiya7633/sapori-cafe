@@ -104,11 +104,6 @@ async function syncToMongo(
           await models.CMSPageModel.findOneAndUpdate(filter, doc, { upsert: true });
         }
         break;
-      case 'admin':
-        if (operation === 'upsert') {
-          await models.AdminUserModel.findOneAndUpdate(filter, doc, { upsert: true });
-        }
-        break;
     }
   } catch (err: any) {
     console.warn(`[MongoDB Sync ${collection}]`, err.message);
@@ -745,7 +740,6 @@ class SaporiDataStore {
       updatedName: updated.name,
     });
     this.saveData(this.data);
-    syncToMongo('admin', 'upsert', { id: updated.id }, updated);
     return updated;
   }
 

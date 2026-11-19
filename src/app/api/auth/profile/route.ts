@@ -94,17 +94,22 @@ export async function PUT(req: NextRequest) {
     const targetName = newName ? newName.trim() : currentAdmin!.name;
     const targetUpdatedAt = new Date().toISOString();
 
-    // 5. Direct synchronous persistence to MongoDB Atlas (clearing old duplicates)
-    await AdminUserModel.deleteMany({});
-    const createdDoc = await AdminUserModel.create({
-      id: 'admin-master',
-      email: targetEmail,
-      password: targetPassword,
-      name: targetName,
-      role: currentAdmin!.role || 'SUPER_ADMIN',
-      updatedAt: targetUpdatedAt,
-    });
-    const updated = createdDoc.toObject() as AdminUser;
+    // 5. Direct synchronous atomic persistence to MongoDB Atlas
+    const updatedDoc = await AdminUserModel.findOneAndUpdate(
+      { id: 'admin-master' },
+      {
+        $set: {
+          id: 'admin-master',
+          email: targetEmail,
+          password: targetPassword,
+          name: targetName,
+          role: currentAdmin!.role || 'SUPER_ADMIN',
+          updatedAt: targetUpdatedAt,
+        },
+      },
+      { upsert: true, new: true }
+    );
+    const updated = updatedDoc!.toObject() as AdminUser;
 
     // 6. Update in-memory store
     dbStore.updateAdminCredentials({

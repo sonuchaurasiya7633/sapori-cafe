@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbStore } from '@/lib/db/store';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import { AdminUserModel } from '@/lib/db/models';
 import { AdminUser } from '@/types';
@@ -21,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to MongoDB Atlas
+    // Connect to MongoDB Atlas (Single Source of Truth)
     await connectToDatabase();
 
     // Retrieve active dynamic admin credentials from MongoDB Atlas
@@ -38,53 +37,29 @@ export async function POST(request: NextRequest) {
       })) as any;
     }
 
-    // Check credentials:
-    // 1. Matches active MongoDB Atlas record
+    // Strict authentication against current credentials in MongoDB Atlas
     const matchesStored =
       adminUser &&
-      normalizedEmail === adminUser.email.toLowerCase() &&
+      (normalizedEmail === adminUser.email.toLowerCase() ||
+        normalizedEmail === 'admin@saporicafe.in' ||
+        normalizedEmail === 'admin') &&
       normalizedPassword === adminUser.password;
 
-    // 2. Matches user's permanent master credentials: saporikitchens@gmail.com / Sapori@6367
-    const matchesUserMaster =
-      normalizedEmail === 'saporikitchens@gmail.com' &&
-      normalizedPassword === 'Sapori@6367';
-
-    // 3. Matches emergency legacy fallback: admin@saporicafe.in / admin123
-    const matchesLegacyFallback =
-      (normalizedEmail === 'admin@saporicafe.in' || normalizedEmail === 'admin') &&
-      normalizedPassword === 'admin123';
-
-    if (matchesStored || matchesUserMaster || matchesLegacyFallback) {
-      const activeEmail = matchesStored
-        ? adminUser!.email
-        : matchesUserMaster
-        ? 'saporikitchens@gmail.com'
-        : 'admin@saporicafe.in';
-      const activeRole = adminUser?.role || 'SUPER_ADMIN';
-      const activeName = adminUser?.name || 'Sapori Administrator';
-
-      // Update in-memory store
-      dbStore.updateAdminCredentials({
-        email: activeEmail,
-        password: normalizedPassword,
-        name: activeName,
-      });
-
+    if (matchesStored) {
       const response = NextResponse.json({
         success: true,
         message: 'Admin authentication successful',
         user: {
-          email: activeEmail,
-          role: activeRole,
-          name: activeName,
+          email: adminUser!.email,
+          role: adminUser!.role || 'SUPER_ADMIN',
+          name: adminUser!.name || 'Sapori Administrator',
         },
       });
 
       // Set secure session cookie
       response.cookies.set({
         name: 'sapori_admin_session',
-        value: `authenticated_sapori_admin_session_${activeEmail}`,
+        value: `authenticated_sapori_admin_session_${adminUser!.email}`,
         httpOnly: true,
         path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 days
