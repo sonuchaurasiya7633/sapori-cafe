@@ -252,6 +252,14 @@ const SiteSettingsSchema = new Schema<SiteSettings>(
     defaultMetaDescription: { type: String },
     defaultKeywords: { type: String },
     canonicalDomain: { type: String },
+    firebaseProjectId: { type: String },
+    firebaseClientEmail: { type: String },
+    firebasePrivateKey: { type: String },
+    firebaseDatabaseUrl: { type: String },
+    firebaseApiKey: { type: String },
+    firebaseAppId: { type: String },
+    firebaseMessagingSenderId: { type: String },
+    firebaseVapidKey: { type: String },
   },
   { timestamps: true }
 );
@@ -349,3 +357,20 @@ export const AdminUserModel: Model<AdminUser> =
 
 export const AuditLogModel =
   mongoose.models.AuditLog || mongoose.model('AuditLog', AuditLogSchema);
+
+// ==========================================
+// 12. NOTIFICATION TOKEN SCHEMA (FCM & PUSH)
+// ==========================================
+const NotificationTokenSchema = new Schema(
+  {
+    token: { type: String, required: true, unique: true, index: true },
+    role: { type: String, default: 'admin' },
+    device: { type: String },
+    updatedAt: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+export const NotificationTokenModel =
+  mongoose.models.NotificationToken ||
+  mongoose.model('NotificationToken', NotificationTokenSchema);

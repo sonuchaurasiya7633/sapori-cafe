@@ -205,6 +205,23 @@ export interface SiteSettings {
   defaultMetaDescription?: string;
   defaultKeywords?: string;
   canonicalDomain?: string;
+  firebaseProjectId?: string;
+  firebaseClientEmail?: string;
+  firebasePrivateKey?: string;
+  firebaseDatabaseUrl?: string;
+  firebaseApiKey?: string;
+  firebaseAppId?: string;
+  firebaseMessagingSenderId?: string;
+  firebaseVapidKey?: string;
+}
+
+export interface NotificationToken {
+  id: string;
+  token: string;
+  role: string;
+  device?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CMSPageSection {

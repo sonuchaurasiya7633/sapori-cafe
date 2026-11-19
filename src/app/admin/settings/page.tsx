@@ -22,9 +22,14 @@ import {
   ExternalLink,
   Search,
   FileCheck,
+  BellRing,
+  Volume2,
+  Radio,
+  Sparkles,
 } from 'lucide-react';
 import { SiteSettings } from '@/types';
 import { toast } from '@/lib/toast';
+import { playOrderChime } from '@/lib/notifications/sound';
 import ImageUpload from '@/components/ui/ImageUpload';
 import ChangeCredentialsModal from '@/components/admin/ChangeCredentialsModal';
 
@@ -35,6 +40,27 @@ export default function AdminSettingsPage() {
   const [savedMsg, setSavedMsg] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showCredModal, setShowCredModal] = useState(false);
+  const [testingNotification, setTestingNotification] = useState(false);
+
+  const handleTestNotification = async () => {
+    setTestingNotification(true);
+    playOrderChime();
+    try {
+      const res = await fetch('/api/notifications/test', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success('Live test alert dispatched across all open screens & push subscribers!', {
+          description: `Test Order #${data.order.orderNumber} • ₹${data.order.total}`,
+        });
+      } else {
+        toast.error(data.error || 'Failed to dispatch test notification');
+      }
+    } catch (e) {
+      toast.error('Network error triggering test notification');
+    } finally {
+      setTestingNotification(false);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/settings')
@@ -750,6 +776,132 @@ export default function AdminSettingsPage() {
                 <span>Test Rich Results</span>
                 <ExternalLink className="w-2.5 h-2.5 text-[#DEB853]" />
               </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 7: Firebase Cloud Messaging & Realtime Order Notifications */}
+        <div className="bg-[#FFFFFF] border border-[#15370D]/15 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#15370D]/10 pb-3">
+            <div className="flex items-center space-x-2">
+              <BellRing className="w-4 h-4 text-[#DEB853]" />
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#15370D]">
+                  Realtime Order Notifications &amp; Firebase Cloud Messaging (FCM)
+                </h2>
+                <p className="text-[11px] text-[#15370D]/70">
+                  Instant sound chime, browser push alerts &amp; background mobile notifications for every new order.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => playOrderChime()}
+                className="px-3 py-1.5 rounded-xl border border-[#15370D]/20 bg-[#F5EFE1] hover:bg-[#15370D]/10 text-[#15370D] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Play Audio Bell Chime"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>Test Chime</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={testingNotification}
+                onClick={handleTestNotification}
+                className="px-3.5 py-1.5 rounded-xl bg-[#DEB853] hover:bg-[#c9a444] text-[#071c05] text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                title="Dispatch Simulated Live Order Notification"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{testingNotification ? 'Testing...' : 'Test Live Notification'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/60 flex items-start gap-2.5 text-xs text-amber-900">
+            <Radio className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold">Realtime Dispatch Engine is Active:</p>
+              <p className="text-[11px] text-amber-800 leading-relaxed">
+                Even without external Firebase keys, in-app instant Server-Sent Events (SSE) and audio chimes work out-of-the-box in all active Admin and Kitchen screens. To enable background push notifications on staff phones even when the browser is closed or device locked, enter your Firebase Service Account credentials below.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Firebase Project ID
+              </label>
+              <input
+                type="text"
+                value={settings.firebaseProjectId || ''}
+                onChange={(e) => setSettings({ ...settings, firebaseProjectId: e.target.value })}
+                placeholder="e.g. sapori-cafe-jaipur"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                Found in Firebase Console → Project Settings → General
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Firebase Client Email
+              </label>
+              <input
+                type="text"
+                value={settings.firebaseClientEmail || ''}
+                onChange={(e) => setSettings({ ...settings, firebaseClientEmail: e.target.value })}
+                placeholder="e.g. firebase-adminsdk-xxxxx@sapori-cafe.iam.gserviceaccount.com"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                From Service Account private key JSON
+              </span>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Firebase Private Key (Server Admin SDK)
+              </label>
+              <textarea
+                rows={3}
+                value={settings.firebasePrivateKey || ''}
+                onChange={(e) => setSettings({ ...settings, firebasePrivateKey: e.target.value })}
+                placeholder="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                Private key from downloaded Google Service Account JSON
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Firebase Realtime Database URL (Optional)
+              </label>
+              <input
+                type="text"
+                value={settings.firebaseDatabaseUrl || ''}
+                onChange={(e) => setSettings({ ...settings, firebaseDatabaseUrl: e.target.value })}
+                placeholder="https://sapori-cafe-default-rtdb.firebaseio.com"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Web Push VAPID Key / Messaging Sender ID
+              </label>
+              <input
+                type="text"
+                value={settings.firebaseVapidKey || ''}
+                onChange={(e) => setSettings({ ...settings, firebaseVapidKey: e.target.value })}
+                placeholder="e.g. BF8h0v_xyz123... (Cloud Messaging Web Push Certificate)"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
             </div>
           </div>
         </div>

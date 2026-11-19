@@ -33,6 +33,7 @@ import {
 import Logo from '@/components/ui/Logo';
 import { toast } from '@/lib/toast';
 import ChangeCredentialsModal from '@/components/admin/ChangeCredentialsModal';
+import RealtimeNotificationBanner from '@/components/admin/RealtimeNotificationBanner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -406,6 +407,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="hidden xl:inline">Live Café</span>
             </Link>
+
+            {/* Realtime Live Order & Push Notification Utility */}
+            <RealtimeNotificationBanner />
 
             {/* Notifications Menu */}
             <div className="relative" ref={notifRef}>

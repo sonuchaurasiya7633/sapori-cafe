@@ -4,6 +4,7 @@ import { calculateOrderTotals } from '@/lib/orders/calculator';
 import { CartItem, Order, OrderMode, OrderStatus, PaymentMethod, PaymentStatus } from '@/types';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import { OrderModel } from '@/lib/db/models';
+import { dispatchOrderNotification } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -237,6 +238,13 @@ export async function POST(request: NextRequest) {
     // If dine-in, update table status
     if (orderMode === 'dine_in' && customer.tableNumber) {
       dbStore.updateTableStatus(customer.tableNumber, 'occupied', saved.id);
+    }
+
+    // Trigger Realtime Notification (Firebase FCM + SSE + Push) on each new placed order
+    if (saved.status === 'PLACED') {
+      dispatchOrderNotification(saved).catch((err) => {
+        console.warn('Realtime order notification warning:', err);
+      });
     }
 
     return NextResponse.json({ success: true, order: saved }, { status: 201, headers: NO_CACHE_HEADERS });

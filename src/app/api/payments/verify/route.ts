@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { dbStore } from '@/lib/db/store';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import { OrderModel } from '@/lib/db/models';
+import { dispatchOrderNotification } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -96,6 +97,13 @@ export async function POST(request: NextRequest) {
     const cleanOrder = updatedDoc
       ? (({ _id, __v, ...rest }: any) => rest)(updatedDoc)
       : dbStore.getOrderById(order.id);
+
+    // Trigger Realtime Notification on confirmed payment
+    if (cleanOrder) {
+      dispatchOrderNotification(cleanOrder).catch((err) => {
+        console.warn('Realtime payment notification warning:', err);
+      });
+    }
 
     return NextResponse.json({
       success: true,
