@@ -196,6 +196,7 @@ export interface SiteSettings {
   googleMapsUrl?: string;
   logoUrl?: string;
   heroImageUrl?: string;
+  heroImageMobileUrl?: string;
   footerImageUrl?: string;
   footerBannerUrl?: string;
   googleVerificationCode?: string;

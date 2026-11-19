@@ -243,6 +243,7 @@ const SiteSettingsSchema = new Schema<SiteSettings>(
     googleMapsUrl: { type: String },
     logoUrl: { type: String },
     heroImageUrl: { type: String },
+    heroImageMobileUrl: { type: String },
     footerImageUrl: { type: String },
     footerBannerUrl: { type: String },
     googleVerificationCode: { type: String },

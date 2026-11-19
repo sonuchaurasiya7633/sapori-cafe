@@ -59,12 +59,13 @@ export default function HomePage() {
   const reviews = dbStore.getReviews(true).slice(0, 3);
 
   const heroImageSrc = hero.heroImage || settings.heroImageUrl || '/images/hero-cafe.webp';
+  const heroMobileImageSrc = hero.heroImageMobile || settings.heroImageMobileUrl || '/images/hero-mobile.jpg';
 
   return (
     <div className="space-y-0 overflow-x-hidden">
-      {/* SECTION 1: COMPACT CINEMATIC HERO */}
+      {/* SECTION 1A: DESKTOP CINEMATIC HERO (Exactly Unchanged) */}
       {heroVisible && (
-        <section className="relative min-h-[420px] sm:min-h-[460px] lg:min-h-[500px] xl:min-h-[540px] flex items-center overflow-hidden border-b border-[#15370D]/20">
+        <section className="hidden md:flex relative min-h-[420px] sm:min-h-[460px] lg:min-h-[500px] xl:min-h-[540px] items-center overflow-hidden border-b border-[#15370D]/20">
           {/* Photorealistic High-Definition Hero Background */}
           <div className="absolute inset-0 z-0">
             <Image
@@ -129,6 +130,78 @@ export default function HomePage() {
                   <span>{hero.ctaSecondaryText || 'Reserve Table'}</span>
                 </Link>
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SECTION 1B: MOBILE OPTIMIZED HERO (100% Uncropped Storefront Photo + Non-Overlapping Actions) */}
+      {heroVisible && (
+        <section className="flex md:hidden flex-col bg-[#071c05] text-[#F5EFE1] border-b border-[#15370D]/20 overflow-hidden">
+          {/* 1. Mobile Hero Image Showcase - Uncropped Storefront with Hanging Lights & Cafe Interior */}
+          <div className="relative w-full aspect-[4/5] max-h-[56vh] bg-[#071c05] overflow-hidden flex items-center justify-center">
+            <Image
+              src={heroMobileImageSrc}
+              alt="Sapori Café & Eatery storefront exterior with warm fairy lights and cozy Italian ambience in Raja Park, Jaipur"
+              fill
+              priority
+              quality={95}
+              sizes="(max-width: 768px) 100vw, 819px"
+              className="object-contain sm:object-cover w-full h-full select-none"
+            />
+            {/* Ambient vignette transitioning smoothly into the action block */}
+            <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#071c05] via-[#071c05]/60 to-transparent pointer-events-none" />
+          </div>
+
+          {/* 2. Mobile Hero Content & Action Panel - Cleanly separated below image so zero text obscures the store */}
+          <div className="relative z-10 px-4 pt-1 pb-4 space-y-2.5 bg-[#071c05]">
+            {/* Live Indicator Row */}
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center space-x-1.5 bg-[#0b2408] border border-[#DEB853]/60 px-3 py-1 rounded-full shadow-xs">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#DEB853] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DEB853]" />
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#F5EFE1]">
+                  {hero.badge || 'COFFEE • PIZZA • GOOD VIBES'}
+                </span>
+              </div>
+              <span className="text-[10px] font-medium tracking-wider uppercase text-[#DEB853]/90">
+                Raja Park, Jaipur
+              </span>
+            </div>
+
+            {/* Headline with Brand Script Accent */}
+            <div className="space-y-0.5">
+              <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-tight">
+                {hero.title || 'A Place to Pause,'}{' '}
+                <span className="font-script font-normal text-[#DEB853] normal-case text-2xl sm:text-3xl inline-block drop-shadow-[0_2px_8px_rgba(222,184,83,0.3)]">
+                  {hero.titleScript || 'Sip & Savour'}
+                </span>
+              </h1>
+              <p className="text-[11px] sm:text-xs text-[#F5EFE1]/80 leading-relaxed font-normal line-clamp-2">
+                {hero.description ||
+                  'Discover authentic 48-hour slow-fermented Neapolitan pizzas, precision Arabica roasts, golden handcrafted fries, and cozy Italian moments in Raja Park, Jaipur.'}
+              </p>
+            </div>
+
+            {/* High-Impact Dual Action Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+              <Link
+                href={hero.ctaPrimaryLink || '/menu'}
+                className="inline-flex items-center justify-center space-x-1.5 bg-gradient-to-r from-[#DEB853] via-[#E7C769] to-[#D5AD41] active:from-[#E7C769] active:to-[#DEB853] text-[#15370D] px-3.5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md active:scale-98 transition-all min-h-[44px]"
+              >
+                <span>{hero.ctaPrimaryText || 'Explore Menu'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <Link
+                href={hero.ctaSecondaryLink || '/reservations'}
+                className="inline-flex items-center justify-center space-x-1.5 bg-black/40 active:bg-black/60 text-[#F5EFE1] border border-[#DEB853]/60 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider backdrop-blur-md active:scale-98 transition-all min-h-[44px]"
+              >
+                <Calendar className="w-3.5 h-3.5 text-[#DEB853]" />
+                <span>{hero.ctaSecondaryText || 'Reserve Table'}</span>
+              </Link>
             </div>
           </div>
         </section>
