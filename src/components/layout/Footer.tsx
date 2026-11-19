@@ -382,7 +382,19 @@ export const Footer: React.FC = () => {
             </Link>
             <span className="text-[#15370D]/35">|</span>
             <Link href="/cancellation" className="hover:text-[#15370D] hover:underline transition-colors py-0.5">
-              Cancellation &amp; Refund Policy
+              Refund &amp; Cancellation
+            </Link>
+            <span className="text-[#15370D]/35">|</span>
+            <Link href="/delivery" className="hover:text-[#15370D] hover:underline transition-colors py-0.5">
+              Delivery Policy
+            </Link>
+            <span className="text-[#15370D]/35">|</span>
+            <Link href="/disclaimer" className="hover:text-[#15370D] hover:underline transition-colors py-0.5">
+              Disclaimer
+            </Link>
+            <span className="text-[#15370D]/35">|</span>
+            <Link href="/cookies" className="hover:text-[#15370D] hover:underline transition-colors py-0.5">
+              Cookies
             </Link>
             <span className="text-[#15370D]/35">|</span>
             <Link href="/faq" className="hover:text-[#15370D] hover:underline transition-colors py-0.5">

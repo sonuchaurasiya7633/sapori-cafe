@@ -3,6 +3,8 @@ import { dbStore } from '@/lib/db/store';
 import { CustomerReview } from '@/types';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import { CustomerReviewModel } from '@/lib/db/models';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimiter';
+import { escapeHtml } from '@/lib/security/sanitize';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -34,6 +36,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clientIp = getClientIp(request);
+    const rateCheck = checkRateLimit(`review_${clientIp}`, { limit: 10, windowMs: 300000 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Review submission limit reached. Please wait a few minutes.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { authorName, rating, comment } = body;
 
@@ -44,12 +55,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Input sanitization against XSS & script injection
+    const cleanAuthor = escapeHtml(String(authorName).trim().slice(0, 80));
+    const cleanComment = escapeHtml(String(comment).trim().slice(0, 1000));
     const numericRating = Math.max(1, Math.min(5, parseInt(rating, 10)));
+
     const newReview: CustomerReview = {
       id: `rev-${Date.now()}`,
-      authorName: authorName.trim(),
+      authorName: cleanAuthor,
       rating: numericRating,
-      comment: comment.trim(),
+      comment: cleanComment,
       verifiedOrder: true,
       createdAt: new Date().toISOString(),
       isApproved: true,

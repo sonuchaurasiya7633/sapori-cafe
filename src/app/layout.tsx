@@ -3,6 +3,7 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import AppShell from '@/components/layout/AppShell';
 import ToastProvider from '@/components/ui/ToastProvider';
+import CookieBanner from '@/components/ui/CookieBanner';
 import { dbStore } from '@/lib/db/store';
 import { getBaseUrl, getRestaurantSchema, getWebSiteSchema } from '@/lib/seo';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
@@ -141,6 +142,7 @@ export default async function RootLayout({
       </head>
       <body className="bg-[#F5EFE1] text-[#15370D] min-h-screen flex flex-col antialiased selection:bg-[#15370D] selection:text-[#F5EFE1]">
         <ToastProvider />
+        <CookieBanner />
         <CartProvider>
           <AppShell>{children}</AppShell>
         </CartProvider>

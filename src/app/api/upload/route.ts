@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
 import cloudinary from '@/lib/cloudinary';
+import { checkRateLimit, getClientIp } from '@/lib/security/rateLimiter';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = [
@@ -16,6 +18,28 @@ const ALLOWED_MIME_TYPES = [
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. Rate Limiting: max 20 uploads per minute per IP
+    const clientIp = getClientIp(req);
+    const rateCheck = checkRateLimit(`upload_${clientIp}`, { limit: 20, windowMs: 60000 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Upload rate limit reached. Please wait a minute.' },
+        { status: 429 }
+      );
+    }
+
+    // 1. Session verification in production
+    const session = req.cookies.get('sapori_admin_session')?.value;
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (!session || !session.includes('authenticated_sapori_admin_session'))
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin authentication required for media uploads' },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
 
@@ -26,7 +50,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Validate File Type
+    // 2. Validate File Type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
         {
@@ -37,7 +61,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validate File Size
+    // 3. Validate File Size
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return NextResponse.json(
         {
@@ -52,7 +76,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     const base64Data = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-    // 3. Attempt Secure Cloudinary Upload to sapori-cafe/food-items
+    // 4. Attempt Secure Cloudinary Upload to sapori-cafe/food-items
     try {
       const uploadResponse = await cloudinary.uploader.upload(base64Data, {
         folder: 'sapori-cafe/food-items',
@@ -72,33 +96,33 @@ export async function POST(req: NextRequest) {
         format: uploadResponse.format,
       });
     } catch (cloudErr: any) {
-      console.warn('Cloudinary upload warning:', cloudErr.message || cloudErr);
+      console.warn('Cloudinary upload warning:', cloudErr.message);
 
-      // Graceful local disk fallback if Cloudinary credentials need updating
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'food-items');
+      // Local fallback in non-production environments
+      const timestamp = Date.now();
+      const safeOriginalName = path.basename(file.name).replace(/[^a-zA-Z0-9.-]/g, '_');
+      const uniqueFileName = `${timestamp}-${safeOriginalName}`;
+      const uploadDir = path.resolve(process.cwd(), 'public', 'uploads', 'food-items');
+
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
 
-      const extension = file.type.split('/')[1] || 'jpg';
-      const cleanFileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const filePath = path.join(uploadDir, cleanFileName);
-
+      const filePath = path.resolve(uploadDir, uniqueFileName);
       fs.writeFileSync(filePath, buffer);
-      const localUrl = `/uploads/food-items/${cleanFileName}`;
 
       return NextResponse.json({
         success: true,
-        url: localUrl,
-        publicId: `local_${cleanFileName}`,
+        url: `/uploads/food-items/${uniqueFileName}`,
+        publicId: `local_${uniqueFileName}`,
         provider: 'local',
-        warning: 'Uploaded to local storage. Update CLOUDINARY_API_SECRET in .env for Cloudinary CDN sync.',
+        warning: 'Uploaded locally as Cloudinary credentials were not reachable',
       });
     }
   } catch (error: any) {
-    console.error('Upload route error:', error);
+    console.error('Upload API error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Image upload failed' },
+      { success: false, error: 'Image upload failed. Please verify format and size.' },
       { status: 500 }
     );
   }
@@ -106,6 +130,17 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = req.cookies.get('sapori_admin_session')?.value;
+    if (
+      process.env.NODE_ENV === 'production' &&
+      (!session || !session.includes('authenticated_sapori_admin_session'))
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin authentication required to delete media' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const publicId = searchParams.get('publicId');
 
@@ -116,14 +151,21 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // If local file
+    // Path Traversal Defenses on Local Files
     if (publicId.startsWith('local_')) {
-      const fileName = publicId.replace('local_', '');
-      const filePath = path.join(process.cwd(), 'public', 'uploads', 'food-items', fileName);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      const cleanFileName = path.basename(publicId.replace('local_', ''));
+      const uploadDir = path.resolve(process.cwd(), 'public', 'uploads', 'food-items');
+      const targetPath = path.resolve(uploadDir, cleanFileName);
+
+      // Strictly ensure target stays inside uploadDir
+      if (!targetPath.startsWith(uploadDir)) {
+        return NextResponse.json({ success: false, error: 'Access denied: Invalid file path' }, { status: 403 });
       }
-      return NextResponse.json({ success: true, message: 'Local image deleted' });
+
+      if (fs.existsSync(targetPath)) {
+        fs.unlinkSync(targetPath);
+      }
+      return NextResponse.json({ success: true, message: 'Local image deleted safely' });
     }
 
     // If Cloudinary asset
