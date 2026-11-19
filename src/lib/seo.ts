@@ -3,15 +3,39 @@ import { dbStore } from '@/lib/db/store';
 
 /**
  * Returns the canonical base URL for the project.
- * Checks environment variable NEXT_PUBLIC_APP_URL, Vercel URL, or fallback domain.
+ * Strictly outputs the custom production domain (https://saporicafe.in)
+ * so that Google Search Console sitemaps never fail with "URL not allowed".
  */
-export function getBaseUrl(): string {
-  let url =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://saporicafe.in');
+export function getBaseUrl(customSettings?: SiteSettings): string {
+  // 1. Check SiteSettings canonicalDomain in DB (e.g. saporicafe.in or https://saporicafe.in)
+  try {
+    const settings = customSettings || dbStore.getSettings();
+    if (settings?.canonicalDomain && settings.canonicalDomain.trim().length > 0) {
+      let cd = settings.canonicalDomain.trim();
+      if (!cd.startsWith('http://') && !cd.startsWith('https://')) {
+        cd = `https://${cd}`;
+      }
+      return cd.replace(/\/+$/, '');
+    }
+  } catch (e) {
+    // ignore
+  }
 
-  // Strip trailing slashes
-  return url.replace(/\/+$/, '');
+  // 2. Explicit custom app URL env var (ignoring localhost and vercel preview subdomains)
+  if (
+    process.env.NEXT_PUBLIC_APP_URL &&
+    !process.env.NEXT_PUBLIC_APP_URL.includes('localhost') &&
+    !process.env.NEXT_PUBLIC_APP_URL.includes('.vercel.app')
+  ) {
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL.trim();
+    if (!appUrl.startsWith('http://') && !appUrl.startsWith('https://')) {
+      appUrl = `https://${appUrl}`;
+    }
+    return appUrl.replace(/\/+$/, '');
+  }
+
+  // 3. Official custom production domain for Sapori Cafe
+  return 'https://saporicafe.in';
 }
 
 /**

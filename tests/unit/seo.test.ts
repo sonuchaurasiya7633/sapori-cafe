@@ -100,6 +100,12 @@ describe('Technical SEO & Structured Data Schemas', () => {
 
     const urls = entries.map((e) => e.url);
 
+    // Verify all URLs strictly match the production custom domain to avoid Google Search Console "URL not allowed" errors
+    urls.forEach((u) => {
+      expect(u.startsWith('https://saporicafe.in')).toBe(true);
+      expect(u.includes('.vercel.app')).toBe(false);
+    });
+
     // Verify key public routes are present
     expect(urls.some((u) => u.endsWith('/menu'))).toBe(true);
     expect(urls.some((u) => u.endsWith('/story'))).toBe(true);
