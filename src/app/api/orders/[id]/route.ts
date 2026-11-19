@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
 import { canTransitionOrder } from '@/lib/orders/stateMachine';
 import { Order, OrderStatus, PaymentStatus } from '@/types';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { OrderModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET(
   _request: NextRequest,
@@ -9,13 +18,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const order = dbStore.getOrderById(id);
+    await connectToDatabase();
+    const dbOrder = await OrderModel.findOne({ $or: [{ id }, { orderNumber: id }] }).lean();
+    if (dbOrder) {
+      const { _id, __v, ...clean } = dbOrder as any;
+      return NextResponse.json({ success: true, order: clean }, { headers: NO_CACHE_HEADERS });
+    }
 
+    const order = dbStore.getOrderById(id);
     if (!order) {
       return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, order });
+    return NextResponse.json({ success: true, order }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to fetch order' }, { status: 500 });
   }
@@ -30,7 +45,12 @@ export async function PATCH(
     const body = await request.json();
     const { status, paymentStatus, actor = 'admin', note } = body;
 
-    let order: Order | null | undefined = dbStore.getOrderById(id);
+    await connectToDatabase();
+    let order: Order | null | undefined = (await OrderModel.findOne({ $or: [{ id }, { orderNumber: id }] }).lean()) as any;
+    if (!order) {
+      order = dbStore.getOrderById(id);
+    }
+
     if (!order) {
       return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
     }
@@ -50,6 +70,7 @@ export async function PATCH(
       }
       const updatedPayment = dbStore.updateOrderPayment(order.id, paymentStatus as PaymentStatus);
       if (updatedPayment) order = updatedPayment;
+      await OrderModel.findOneAndUpdate({ id: order.id }, { $set: { paymentStatus } });
     }
 
     // Handle order lifecycle status transition
@@ -61,31 +82,11 @@ export async function PATCH(
 
       const updatedStatus = dbStore.updateOrderStatus(order.id, status as OrderStatus, actor, note);
       if (updatedStatus) order = updatedStatus;
+      await OrderModel.findOneAndUpdate({ id: order.id }, { $set: { status, updatedAt: new Date().toISOString() } });
     }
 
-    return NextResponse.json({ success: true, order });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update order status' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const deleted = dbStore.deleteOrder(id, 'admin');
-
-    if (!deleted) {
-      return NextResponse.json({ success: false, error: 'Order record not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, message: 'Order deleted successfully' });
+    return NextResponse.json({ success: true, order }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to delete order' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to update order' }, { status: 500 });
   }
 }

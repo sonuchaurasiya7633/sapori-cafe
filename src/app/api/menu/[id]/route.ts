@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
 import { deleteAsset } from '@/lib/cloudinary';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { MenuItemModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET(
   _request: NextRequest,
@@ -8,13 +17,19 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const item = dbStore.getMenuItemById(id) || dbStore.getMenuItemBySlug(id);
+    await connectToDatabase();
+    const dbItem = await MenuItemModel.findOne({ $or: [{ id }, { slug: id }] }).lean();
+    if (dbItem) {
+      const { _id, __v, ...clean } = dbItem as any;
+      return NextResponse.json({ success: true, item: clean }, { headers: NO_CACHE_HEADERS });
+    }
 
+    const item = dbStore.getMenuItemById(id) || dbStore.getMenuItemBySlug(id);
     if (!item) {
       return NextResponse.json({ success: false, error: 'Menu item not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, item });
+    return NextResponse.json({ success: true, item }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to fetch item' }, { status: 500 });
   }
@@ -24,18 +39,30 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
-    const existing = dbStore.getMenuItemById(id);
+  return handleUpdate(request, params);
+}
 
-    if (!existing) {
-      return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
-    }
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return handleUpdate(request, params);
+}
+
+async function handleUpdate(
+  request: NextRequest,
+  paramsPromise: Promise<{ id: string }>
+) {
+  try {
+    const { id } = await paramsPromise;
+    const body = await request.json();
+
+    await connectToDatabase();
+    const existing = await MenuItemModel.findOne({ id }).lean();
 
     // Clean up old image if replaced or removed
     if (
-      existing.cloudinaryPublicId &&
+      existing?.cloudinaryPublicId &&
       body.cloudinaryPublicId !== undefined &&
       existing.cloudinaryPublicId !== body.cloudinaryPublicId
     ) {
@@ -44,22 +71,19 @@ export async function PUT(
       );
     }
 
+    const updatedDoc = await MenuItemModel.findOneAndUpdate(
+      { id },
+      { $set: body },
+      { new: true, upsert: true }
+    ).lean();
+
     const updated = dbStore.updateMenuItem(id, body);
-    if (!updated) {
-      return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
-    }
+    const { _id, __v, ...cleanUpdated } = (updatedDoc || {}) as any;
 
-    return NextResponse.json({ success: true, item: updated });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to update item' }, { status: 500 });
+    return NextResponse.json({ success: true, item: { ...updated, ...cleanUpdated } }, { headers: NO_CACHE_HEADERS });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || 'Failed to update item' }, { status: 500 });
   }
-}
-
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  return PUT(request, context);
 }
 
 export async function DELETE(
@@ -68,24 +92,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const existing = dbStore.getMenuItemById(id);
-    if (!existing) {
-      return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
-    }
-
-    if (existing.cloudinaryPublicId) {
-      deleteAsset(existing.cloudinaryPublicId).catch((e) =>
-        console.warn('Asset delete error:', e)
-      );
-    }
-
+    await connectToDatabase();
+    await MenuItemModel.deleteOne({ id });
     const deleted = dbStore.deleteMenuItem(id);
-    if (!deleted) {
-      return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
-    }
 
-    return NextResponse.json({ success: true, message: 'Item deleted' });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to delete item' }, { status: 500 });
+    return NextResponse.json({ success: true, deleted: true }, { headers: NO_CACHE_HEADERS });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || 'Failed to delete item' }, { status: 500 });
   }
 }

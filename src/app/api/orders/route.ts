@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
 import { calculateOrderTotals } from '@/lib/orders/calculator';
 import { CartItem, Order, OrderMode, OrderStatus, PaymentMethod, PaymentStatus } from '@/types';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { OrderModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,10 +18,22 @@ export async function GET(request: NextRequest) {
     const status = (searchParams.get('status') as OrderStatus) || undefined;
     const mode = searchParams.get('mode') || undefined;
 
+    await connectToDatabase();
+    const query: Record<string, any> = {};
+    if (status) query.status = status;
+    if (mode) query.orderMode = mode;
+
+    const dbOrders = await OrderModel.find(query).sort({ createdAt: -1 }).lean();
+    if (dbOrders && dbOrders.length > 0) {
+      const cleanOrders = dbOrders.map(({ _id, __v, ...rest }: any) => rest);
+      return NextResponse.json({ success: true, count: cleanOrders.length, orders: cleanOrders }, { headers: NO_CACHE_HEADERS });
+    }
+
     const orders = dbStore.getOrders({ status, mode });
-    return NextResponse.json({ success: true, count: orders.length, orders });
+    return NextResponse.json({ success: true, count: orders.length, orders }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to fetch orders' }, { status: 500 });
+    const orders = dbStore.getOrders();
+    return NextResponse.json({ success: true, count: orders.length, orders }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -209,6 +230,8 @@ export async function POST(request: NextRequest) {
       dbStore.updateTableStatus(customer.tableNumber.trim(), 'occupied');
     }
 
+    await connectToDatabase();
+    await OrderModel.findOneAndUpdate({ id: newOrder.id }, newOrder, { upsert: true, new: true });
     const saved = dbStore.createOrder(newOrder);
 
     // If dine-in, update table status
@@ -216,7 +239,7 @@ export async function POST(request: NextRequest) {
       dbStore.updateTableStatus(customer.tableNumber, 'occupied', saved.id);
     }
 
-    return NextResponse.json({ success: true, order: saved }, { status: 201 });
+    return NextResponse.json({ success: true, order: saved }, { status: 201, headers: NO_CACHE_HEADERS });
   } catch (error) {
     console.error('Order creation error:', error);
     return NextResponse.json({ success: false, error: 'Failed to process order' }, { status: 500 });

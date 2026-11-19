@@ -4,18 +4,28 @@ import { SiteSettings } from '@/types';
 import { connectToDatabase } from '@/lib/db/mongodb';
 import { SiteSettingsModel } from '@/lib/db/models';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store',
+};
+
 export async function GET() {
   try {
     await connectToDatabase();
     const dbSettings = await SiteSettingsModel.findOne().lean();
     if (dbSettings) {
-      const merged = { ...dbStore.getSettings(), ...dbSettings };
-      return NextResponse.json(merged);
+      const { _id, __v, ...clean } = dbSettings as any;
+      const merged = { ...dbStore.getSettings(), ...clean };
+      return NextResponse.json(merged, { headers: NO_CACHE_HEADERS });
     }
-    return NextResponse.json(dbStore.getSettings());
+    return NextResponse.json(dbStore.getSettings(), { headers: NO_CACHE_HEADERS });
   } catch (error) {
     console.error('GET /api/settings error:', error);
-    return NextResponse.json(dbStore.getSettings());
+    return NextResponse.json(dbStore.getSettings(), { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -64,7 +74,7 @@ async function handleUpdate(request: NextRequest) {
       updates.canonicalDomain = updates.canonicalDomain.trim();
     }
 
-    // Connect directly to MongoDB Atlas
+    // Connect directly to MongoDB Atlas (Single Source of Truth)
     await connectToDatabase();
 
     // 1. Direct synchronous write to MongoDB Atlas
@@ -77,17 +87,21 @@ async function handleUpdate(request: NextRequest) {
     // 2. Synchronize in-memory store
     const updated = dbStore.updateSettings(updates);
 
-    const mergedSettings = savedDoc ? { ...updated, ...savedDoc } : updated;
+    const { _id, __v, ...cleanSaved } = (savedDoc || {}) as any;
+    const mergedSettings = { ...updated, ...cleanSaved };
 
-    return NextResponse.json({
-      success: true,
-      settings: mergedSettings,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        settings: mergedSettings,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
     console.error('Settings update error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to update settings' },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }

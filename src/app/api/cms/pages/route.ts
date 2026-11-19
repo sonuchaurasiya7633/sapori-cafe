@@ -1,15 +1,28 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { CMSPageModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET() {
   try {
+    await connectToDatabase();
+    const dbPages = await CMSPageModel.find().lean();
+    if (dbPages && dbPages.length > 0) {
+      const cleanPages = dbPages.map(({ _id, __v, ...rest }: any) => rest);
+      return NextResponse.json({ success: true, pages: cleanPages }, { headers: NO_CACHE_HEADERS });
+    }
     const pages = dbStore.getCMSPages();
-    return NextResponse.json({ success: true, pages });
+    return NextResponse.json({ success: true, pages }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch CMS pages' },
-      { status: 500 }
-    );
+    const pages = dbStore.getCMSPages();
+    return NextResponse.json({ success: true, pages }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -35,15 +48,17 @@ export async function POST(request: Request) {
       sections: body.sections || [],
     };
 
-    const existingPages = dbStore.getCMSPages();
-    const exists = existingPages.find((p) => p.id === pageId);
-    if (exists) {
-      const updated = dbStore.updateCMSPage(pageId, newPage);
-      return NextResponse.json({ success: true, page: updated });
-    }
+    await connectToDatabase();
+    const savedDoc = await CMSPageModel.findOneAndUpdate(
+      { id: pageId },
+      { $set: newPage },
+      { upsert: true, new: true }
+    ).lean();
 
-    existingPages.push(newPage);
-    return NextResponse.json({ success: true, page: newPage });
+    dbStore.updateCMSPage(pageId, newPage);
+    const { _id, __v, ...cleanSaved } = (savedDoc || {}) as any;
+
+    return NextResponse.json({ success: true, page: { ...newPage, ...cleanSaved } }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to create CMS page' },

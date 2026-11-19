@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
 import { TableReservation } from '@/types';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { TableReservationModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +20,14 @@ export async function GET(request: NextRequest) {
     const phone = searchParams.get('phone');
     const ref = searchParams.get('ref');
 
-    let reservations = dbStore.getReservations();
+    await connectToDatabase();
+    let reservations: TableReservation[] = [];
+    const dbReservations = await TableReservationModel.find().sort({ date: -1, time: -1 }).lean();
+    if (dbReservations && dbReservations.length > 0) {
+      reservations = dbReservations.map(({ _id, __v, ...rest }: any) => rest);
+    } else {
+      reservations = dbStore.getReservations();
+    }
 
     // Specific Lookup by Reference
     if (ref) {
@@ -156,6 +172,8 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
+    await connectToDatabase();
+    await TableReservationModel.findOneAndUpdate({ id: reservation.id }, reservation, { upsert: true, new: true });
     const saved = dbStore.createReservation(reservation);
 
     // If a table was pre-assigned, mark it reserved
@@ -163,7 +181,7 @@ export async function POST(request: NextRequest) {
       dbStore.updateTableStatus(reservation.tableNumber, 'reserved');
     }
 
-    return NextResponse.json({ success: true, reservation: saved }, { status: 201 });
+    return NextResponse.json({ success: true, reservation: saved }, { status: 201, headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('Reservation creation error:', error);
     return NextResponse.json(

@@ -4,6 +4,9 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 import { AdminUserModel } from '@/lib/db/models';
 import { AdminUser } from '@/types';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();

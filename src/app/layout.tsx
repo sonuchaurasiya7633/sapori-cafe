@@ -5,6 +5,10 @@ import AppShell from '@/components/layout/AppShell';
 import ToastProvider from '@/components/ui/ToastProvider';
 import { dbStore } from '@/lib/db/store';
 import { getBaseUrl, getRestaurantSchema, getWebSiteSchema } from '@/lib/seo';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
   let settings = dbStore.getSettings();
@@ -133,30 +137,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        {(() => {
-          const gaId = settings.googleAnalyticsId || process.env.NEXT_PUBLIC_GA_ID;
-          if (!gaId) return null;
-          return (
-            <>
-              <script
-                async
-                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-              />
-              <script
-                dangerouslySetInnerHTML={{
-                  __html: `
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    gtag('js', new Date());
-                    gtag('config', '${gaId}', {
-                      page_path: window.location.pathname,
-                    });
-                  `,
-                }}
-              />
-            </>
-          );
-        })()}
+        <GoogleAnalytics gaId={settings.googleAnalyticsId || process.env.NEXT_PUBLIC_GA_ID} />
       </head>
       <body className="bg-[#F5EFE1] text-[#15370D] min-h-screen flex flex-col antialiased selection:bg-[#15370D] selection:text-[#F5EFE1]">
         <ToastProvider />

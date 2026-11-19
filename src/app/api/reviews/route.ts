@@ -1,14 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
 import { CustomerReview } from '@/types';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { CustomerReviewModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET(request: NextRequest) {
   try {
     const all = request.nextUrl.searchParams.get('all') === 'true';
+    await connectToDatabase();
+    const filter = all ? {} : { isApproved: true };
+    const dbReviews = await CustomerReviewModel.find(filter).sort({ createdAt: -1 }).lean();
+
+    if (dbReviews && dbReviews.length > 0) {
+      const cleanReviews = dbReviews.map(({ _id, __v, ...rest }: any) => rest);
+      return NextResponse.json({ success: true, count: cleanReviews.length, reviews: cleanReviews }, { headers: NO_CACHE_HEADERS });
+    }
+
     const reviews = dbStore.getReviews(!all);
-    return NextResponse.json({ success: true, count: reviews.length, reviews });
+    return NextResponse.json({ success: true, count: reviews.length, reviews }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to fetch reviews' }, { status: 500 });
+    const all = request.nextUrl.searchParams.get('all') === 'true';
+    const reviews = dbStore.getReviews(!all);
+    return NextResponse.json({ success: true, count: reviews.length, reviews }, { headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -35,10 +55,13 @@ export async function POST(request: NextRequest) {
       isApproved: true,
     };
 
+    await connectToDatabase();
+    await CustomerReviewModel.findOneAndUpdate({ id: newReview.id }, newReview, { upsert: true, new: true });
     const saved = dbStore.createReview(newReview);
-    return NextResponse.json({ success: true, review: saved }, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to submit review' }, { status: 500 });
+
+    return NextResponse.json({ success: true, review: saved }, { status: 201, headers: NO_CACHE_HEADERS });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || 'Failed to submit review' }, { status: 500 });
   }
 }
 
@@ -55,14 +78,13 @@ export async function PATCH(request: NextRequest) {
     if (reply !== undefined) updates.adminReply = reply;
     if (isApproved !== undefined) updates.isApproved = Boolean(isApproved);
 
+    await connectToDatabase();
+    await CustomerReviewModel.findOneAndUpdate({ id: reviewId }, { $set: updates }, { new: true });
     const updated = dbStore.updateReview(reviewId, updates);
-    if (!updated) {
-      return NextResponse.json({ success: false, error: 'Review not found' }, { status: 404 });
-    }
 
-    return NextResponse.json({ success: true, review: updated });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to update review' }, { status: 500 });
+    return NextResponse.json({ success: true, review: updated }, { headers: NO_CACHE_HEADERS });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || 'Failed to update review' }, { status: 500 });
   }
 }
 
@@ -75,13 +97,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Review ID is required' }, { status: 400 });
     }
 
+    await connectToDatabase();
+    await CustomerReviewModel.deleteOne({ id });
     const deleted = dbStore.deleteReview(id);
-    if (!deleted) {
-      return NextResponse.json({ success: false, error: 'Review not found' }, { status: 404 });
-    }
 
-    return NextResponse.json({ success: true, message: 'Review deleted successfully' });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to delete review' }, { status: 500 });
+    return NextResponse.json({ success: true, deleted: true }, { headers: NO_CACHE_HEADERS });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || 'Failed to delete review' }, { status: 500 });
   }
 }

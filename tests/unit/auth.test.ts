@@ -69,67 +69,79 @@ describe('Admin ID and Password Management', () => {
   });
 
   it('successfully updates admin ID and password, and verifies new login', async () => {
+    const { AdminUserModel } = await import('../../src/lib/db/models');
+    const { connectToDatabase } = await import('../../src/lib/db/mongodb');
+    await connectToDatabase();
+    const originalAdmin = await AdminUserModel.findOne().lean();
+
+    const currentPass = originalAdmin?.password || dbStore.getAdminUser().password;
     const initialAdmin = dbStore.getAdminUser();
 
     const newTestEmail = 'master.chef@saporicafe.in';
     const newTestPassword = 'SecureSapori2026!';
     const newTestName = 'Executive Chef Sonu';
 
-    // 1. Update credentials via API
-    const updateReq = new NextRequest('http://localhost:3000/api/auth/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        currentPassword: initialAdmin.password,
-        newEmail: newTestEmail,
-        newPassword: newTestPassword,
-        newName: newTestName,
-      }),
-    });
+    try {
+      // 1. Update credentials via API
+      const updateReq = new NextRequest('http://localhost:3000/api/auth/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: currentPass,
+          newEmail: newTestEmail,
+          newPassword: newTestPassword,
+          newName: newTestName,
+        }),
+      });
 
-    const updateRes = await updateProfile(updateReq);
-    const updateData = await updateRes.json();
+      const updateRes = await updateProfile(updateReq);
+      const updateData = await updateRes.json();
 
-    expect(updateRes.status).toBe(200);
-    expect(updateData.success).toBe(true);
-    expect(updateData.user.email).toBe(newTestEmail);
-    expect(updateData.user.name).toBe(newTestName);
+      expect(updateRes.status).toBe(200);
+      expect(updateData.success).toBe(true);
+      expect(updateData.user.email).toBe(newTestEmail);
+      expect(updateData.user.name).toBe(newTestName);
 
-    // 2. Verify login with OLD password now fails
-    const oldLoginReq = new NextRequest('http://localhost:3000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: newTestEmail,
-        password: initialAdmin.password, // Old password
-      }),
-    });
+      // 2. Verify login with OLD password now fails
+      const oldLoginReq = new NextRequest('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newTestEmail,
+          password: currentPass, // Old password
+        }),
+      });
 
-    const oldLoginRes = await login(oldLoginReq);
-    expect(oldLoginRes.status).toBe(401);
+      const oldLoginRes = await login(oldLoginReq);
+      expect(oldLoginRes.status).toBe(401);
 
-    // 3. Verify login with NEW credentials succeeds
-    const newLoginReq = new NextRequest('http://localhost:3000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: newTestEmail,
-        password: newTestPassword,
-      }),
-    });
+      // 3. Verify login with NEW credentials succeeds
+      const newLoginReq = new NextRequest('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newTestEmail,
+          password: newTestPassword,
+        }),
+      });
 
-    const newLoginRes = await login(newLoginReq);
-    const newLoginData = await newLoginRes.json();
+      const newLoginRes = await login(newLoginReq);
+      const newLoginData = await newLoginRes.json();
 
-    expect(newLoginRes.status).toBe(200);
-    expect(newLoginData.success).toBe(true);
-    expect(newLoginData.user.email).toBe(newTestEmail);
-
-    // 4. Reset back to original credentials for test hygiene
-    dbStore.updateAdminCredentials({
-      email: initialAdmin.email,
-      password: initialAdmin.password,
-      name: initialAdmin.name,
-    });
+      expect(newLoginRes.status).toBe(200);
+      expect(newLoginData.success).toBe(true);
+      expect(newLoginData.user.email).toBe(newTestEmail);
+    } finally {
+      // 4. Reset back to original credentials in BOTH Atlas and in-memory store
+      if (originalAdmin) {
+        const { _id, __v, ...cleanAdmin } = originalAdmin as any;
+        await AdminUserModel.findOneAndUpdate({ id: 'admin-master' }, { $set: cleanAdmin });
+      }
+      dbStore.updateAdminCredentials({
+        email: originalAdmin?.email || initialAdmin.email,
+        password: originalAdmin?.password || initialAdmin.password,
+        name: originalAdmin?.name || initialAdmin.name,
+      });
+    }
   });
 });

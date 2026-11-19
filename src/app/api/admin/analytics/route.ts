@@ -1,12 +1,29 @@
 import { NextResponse } from 'next/server';
 import { dbStore } from '@/lib/db/store';
+import { connectToDatabase } from '@/lib/db/mongodb';
+import { OrderModel, TableReservationModel, DiningTableModel, MenuItemModel } from '@/lib/db/models';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+};
 
 export async function GET() {
   try {
-    const orders = dbStore.getOrders();
-    const reservations = dbStore.getReservations();
-    const tables = dbStore.getTables();
-    const menuItems = dbStore.getMenuItems();
+    await connectToDatabase();
+    let orders = await OrderModel.find().lean();
+    if (!orders || orders.length === 0) orders = dbStore.getOrders() as any;
+
+    let reservations = await TableReservationModel.find().lean();
+    if (!reservations || reservations.length === 0) reservations = dbStore.getReservations() as any;
+
+    let tables = await DiningTableModel.find().lean();
+    if (!tables || tables.length === 0) tables = dbStore.getTables() as any;
+
+    let menuItems = await MenuItemModel.find().lean();
+    if (!menuItems || menuItems.length === 0) menuItems = dbStore.getMenuItems() as any;
 
     // Today's date in local YYYY-MM-DD
     const todayStr = new Date().toISOString().slice(0, 10);
