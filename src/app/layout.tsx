@@ -109,26 +109,30 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        {settings.googleAnalyticsId && (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${settings.googleAnalyticsId}`}
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${settings.googleAnalyticsId}', {
-                    page_path: window.location.pathname,
-                  });
-                `,
-              }}
-            />
-          </>
-        )}
+        {(() => {
+          const gaId = settings.googleAnalyticsId || process.env.NEXT_PUBLIC_GA_ID;
+          if (!gaId) return null;
+          return (
+            <>
+              <script
+                async
+                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              />
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', '${gaId}', {
+                      page_path: window.location.pathname,
+                    });
+                  `,
+                }}
+              />
+            </>
+          );
+        })()}
       </head>
       <body className="bg-[#F5EFE1] text-[#15370D] min-h-screen flex flex-col antialiased selection:bg-[#15370D] selection:text-[#F5EFE1]">
         <ToastProvider />
