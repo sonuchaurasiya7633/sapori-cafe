@@ -63,14 +63,6 @@ export async function POST(request: NextRequest) {
     };
 
     const created = dbStore.createMenuItem(newItem);
-
-    // Asynchronously synchronize with MongoDB Atlas
-    import('@/lib/db/models').then(({ MenuItemModel }) => {
-      MenuItemModel.findOneAndUpdate({ id: created.id }, created, { upsert: true }).catch((err) =>
-        console.warn('MongoDB menu item sync warning:', err.message)
-      );
-    });
-
     return NextResponse.json({ success: true, item: created }, { status: 201 });
   } catch (error) {
     console.error('Menu API POST error:', error);

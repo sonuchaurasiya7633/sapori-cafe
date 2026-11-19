@@ -49,13 +49,6 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
     }
 
-    // Synchronize to MongoDB Atlas
-    import('@/lib/db/models').then(({ MenuItemModel }) => {
-      MenuItemModel.findOneAndUpdate({ id }, updated, { upsert: true }).catch((err) =>
-        console.warn('MongoDB menu item sync warning:', err.message)
-      );
-    });
-
     return NextResponse.json({ success: true, item: updated });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to update item' }, { status: 500 });
@@ -90,13 +83,6 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ success: false, error: 'Item not found' }, { status: 404 });
     }
-
-    // Asynchronously delete from MongoDB Atlas
-    import('@/lib/db/models').then(({ MenuItemModel }) => {
-      MenuItemModel.deleteOne({ id }).catch((err) =>
-        console.warn('MongoDB menu item delete warning:', err.message)
-      );
-    });
 
     return NextResponse.json({ success: true, message: 'Item deleted' });
   } catch (error) {

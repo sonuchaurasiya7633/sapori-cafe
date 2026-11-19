@@ -38,6 +38,83 @@ interface DatabaseSchema {
 const DATA_DIR = path.join(process.cwd(), '.data');
 const DATA_FILE = path.join(DATA_DIR, 'sapori_store.json');
 
+// Asynchronous real-time sync with MongoDB Atlas Cloud
+async function syncToMongo(
+  collection: 'settings' | 'menu' | 'categories' | 'orders' | 'reservations' | 'tables' | 'coupons' | 'reviews' | 'cms' | 'admin',
+  operation: 'upsert' | 'delete',
+  filter: Record<string, any>,
+  doc?: any
+) {
+  try {
+    const { connectToDatabase } = await import('@/lib/db/mongodb');
+    await connectToDatabase();
+    const models = await import('@/lib/db/models');
+
+    switch (collection) {
+      case 'settings':
+        if (operation === 'upsert') {
+          await models.SiteSettingsModel.findOneAndUpdate({}, doc, { upsert: true });
+        }
+        break;
+      case 'menu':
+        if (operation === 'upsert') {
+          await models.MenuItemModel.findOneAndUpdate(filter, doc, { upsert: true });
+        } else if (operation === 'delete') {
+          await models.MenuItemModel.deleteOne(filter);
+        }
+        break;
+      case 'categories':
+        if (operation === 'upsert') {
+          await models.CategoryModel.findOneAndUpdate(filter, doc, { upsert: true });
+        } else if (operation === 'delete') {
+          await models.CategoryModel.deleteOne(filter);
+        }
+        break;
+      case 'orders':
+        if (operation === 'upsert') {
+          await models.OrderModel.findOneAndUpdate(filter, doc, { upsert: true });
+        }
+        break;
+      case 'reservations':
+        if (operation === 'upsert') {
+          await models.TableReservationModel.findOneAndUpdate(filter, doc, { upsert: true });
+        }
+        break;
+      case 'tables':
+        if (operation === 'upsert') {
+          await models.DiningTableModel.findOneAndUpdate(filter, doc, { upsert: true });
+        }
+        break;
+      case 'coupons':
+        if (operation === 'upsert') {
+          await models.CouponModel.findOneAndUpdate(filter, doc, { upsert: true });
+        } else if (operation === 'delete') {
+          await models.CouponModel.deleteOne(filter);
+        }
+        break;
+      case 'reviews':
+        if (operation === 'upsert') {
+          await models.CustomerReviewModel.findOneAndUpdate(filter, doc, { upsert: true });
+        } else if (operation === 'delete') {
+          await models.CustomerReviewModel.deleteOne(filter);
+        }
+        break;
+      case 'cms':
+        if (operation === 'upsert') {
+          await models.CMSPageModel.findOneAndUpdate(filter, doc, { upsert: true });
+        }
+        break;
+      case 'admin':
+        if (operation === 'upsert') {
+          await models.AdminUserModel.findOneAndUpdate(filter, doc, { upsert: true });
+        }
+        break;
+    }
+  } catch (err: any) {
+    console.warn(`[MongoDB Sync ${collection}]`, err.message);
+  }
+}
+
 export const INITIAL_TABLES: DiningTable[] = [
   { id: 'tbl-1', tableNumber: '01', capacity: 2, status: 'available', isActive: true, qrCodeUrl: '/table/01' },
   { id: 'tbl-2', tableNumber: '02', capacity: 4, status: 'available', isActive: true, qrCodeUrl: '/table/02' },
@@ -206,6 +283,7 @@ class SaporiDataStore {
     this.data.menuItems.unshift(item);
     this.logAudit('CREATE_MENU_ITEM', 'admin', { itemId: item.id, name: item.name });
     this.saveData(this.data);
+    syncToMongo('menu', 'upsert', { id: item.id }, item);
     return item;
   }
 
@@ -215,6 +293,7 @@ class SaporiDataStore {
     this.data.menuItems[index] = { ...this.data.menuItems[index], ...updates };
     this.logAudit('UPDATE_MENU_ITEM', 'admin', { itemId: id, updates });
     this.saveData(this.data);
+    syncToMongo('menu', 'upsert', { id }, this.data.menuItems[index]);
     return this.data.menuItems[index];
   }
 
@@ -224,6 +303,7 @@ class SaporiDataStore {
     if (this.data.menuItems.length !== prevCount) {
       this.logAudit('DELETE_MENU_ITEM', 'admin', { itemId: id });
       this.saveData(this.data);
+      syncToMongo('menu', 'delete', { id });
       return true;
     }
     return false;
@@ -238,6 +318,7 @@ class SaporiDataStore {
     this.data.categories.push(category);
     this.logAudit('CREATE_CATEGORY', 'admin', { id: category.id, name: category.name });
     this.saveData(this.data);
+    syncToMongo('categories', 'upsert', { id: category.id }, category);
     return category;
   }
 
@@ -485,6 +566,7 @@ class SaporiDataStore {
     tbl.status = status;
     tbl.currentOrderId = currentOrderId;
     this.saveData(this.data);
+    syncToMongo('tables', 'upsert', { tableNumber }, tbl);
     return tbl;
   }
 
@@ -500,6 +582,7 @@ class SaporiDataStore {
   createCoupon(coupon: Coupon): Coupon {
     this.data.coupons.push(coupon);
     this.saveData(this.data);
+    syncToMongo('coupons', 'upsert', { id: coupon.id }, coupon);
     return coupon;
   }
 
@@ -514,6 +597,7 @@ class SaporiDataStore {
   createReview(review: CustomerReview): CustomerReview {
     this.data.reviews.unshift(review);
     this.saveData(this.data);
+    syncToMongo('reviews', 'upsert', { id: review.id }, review);
     return review;
   }
 
@@ -550,6 +634,7 @@ class SaporiDataStore {
     this.data.settings = { ...this.data.settings, ...updates };
     this.logAudit('UPDATE_SETTINGS', 'admin', updates);
     this.saveData(this.data);
+    syncToMongo('settings', 'upsert', {}, this.data.settings);
     return this.data.settings;
   }
 
@@ -578,6 +663,7 @@ class SaporiDataStore {
     };
     this.logAudit('UPDATE_CMS_PAGE', 'admin', { pageId: id, updates });
     this.saveData(this.data);
+    syncToMongo('cms', 'upsert', { id }, pages[idx]);
     return pages[idx];
   }
 
@@ -609,6 +695,7 @@ class SaporiDataStore {
     page.updatedAt = new Date().toISOString();
     this.logAudit('UPDATE_CMS_SECTION', 'admin', { pageId, sectionId, fields, isVisible });
     this.saveData(this.data);
+    syncToMongo('cms', 'upsert', { id: pageId }, page);
     return page;
   }
 
@@ -619,6 +706,7 @@ class SaporiDataStore {
     page.updatedAt = new Date().toISOString();
     this.logAudit(page.isPublished ? 'PUBLISH_CMS_PAGE' : 'UNPUBLISH_CMS_PAGE', 'admin', { pageId: id });
     this.saveData(this.data);
+    syncToMongo('cms', 'upsert', { id }, page);
     return page;
   }
 
@@ -658,6 +746,7 @@ class SaporiDataStore {
       updatedName: updated.name,
     });
     this.saveData(this.data);
+    syncToMongo('admin', 'upsert', { id: updated.id }, updated);
     return updated;
   }
 
