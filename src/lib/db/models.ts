@@ -245,6 +245,12 @@ const SiteSettingsSchema = new Schema<SiteSettings>(
     heroImageUrl: { type: String },
     footerImageUrl: { type: String },
     footerBannerUrl: { type: String },
+    googleVerificationCode: { type: String },
+    googleAnalyticsId: { type: String },
+    metaTitleTemplate: { type: String },
+    defaultMetaDescription: { type: String },
+    defaultKeywords: { type: String },
+    canonicalDomain: { type: String },
   },
   { timestamps: true }
 );

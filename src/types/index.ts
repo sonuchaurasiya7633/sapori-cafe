@@ -198,6 +198,12 @@ export interface SiteSettings {
   heroImageUrl?: string;
   footerImageUrl?: string;
   footerBannerUrl?: string;
+  googleVerificationCode?: string;
+  googleAnalyticsId?: string;
+  metaTitleTemplate?: string;
+  defaultMetaDescription?: string;
+  defaultKeywords?: string;
+  canonicalDomain?: string;
 }
 
 export interface CMSPageSection {

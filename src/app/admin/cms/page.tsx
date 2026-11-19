@@ -833,20 +833,87 @@ export default function AdminCMSPage() {
               {/* TAB 2: PAGE SEO & METADATA EDITOR */}
               {activeTab === 'seo' && (
                 <div className="space-y-6">
-                  <div className="bg-[#15370D] text-[#F5EFE1] p-5 rounded-xl space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#DEB853]">
-                      Google Search &amp; Social Graph Preview
-                    </span>
-                    <h4 className="text-base font-bold text-white line-clamp-1">
-                      {selectedPage.seoTitle || selectedPage.title}
-                    </h4>
-                    <p className="text-xs text-[#F5EFE1]/80 line-clamp-2">
-                      {selectedPage.seoDescription ||
-                        'Discover authentic Italian slow-fermentation and artisanal coffee extraction at Sapori Cafe.'}
-                    </p>
-                    <span className="text-[11px] font-mono text-[#DEB853]/90 block">
-                      https://saporicafe.in{selectedPage.slug}
-                    </span>
+                  {/* Google SERP Live Simulation */}
+                  <div className="bg-[#FFFFFF] border border-[#15370D]/15 rounded-2xl p-5 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#15370D]/10 pb-3">
+                      <div className="flex items-center space-x-2">
+                        <Search className="w-4 h-4 text-[#15370D]" />
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#15370D]">
+                          Google Search Result Preview (SERP Snippet)
+                        </h4>
+                      </div>
+                      <span className="text-[10px] font-bold text-[#15370D]/70 bg-[#F5EFE1] px-2 py-0.5 rounded-full border border-[#15370D]/20">
+                        Desktop &amp; Mobile Search
+                      </span>
+                    </div>
+
+                    {/* Google Result Box */}
+                    <div className="p-4 bg-[#FFFFFF] border border-stone-200 rounded-xl space-y-1.5 shadow-xs font-sans">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-5 h-5 rounded-full bg-[#15370D] text-[#DEB853] text-[9px] font-black flex items-center justify-center shrink-0">
+                          S
+                        </div>
+                        <div className="text-xs text-stone-700 leading-tight">
+                          <span className="font-semibold text-stone-900">Sapori Café &amp; Eatery</span>
+                          <span className="text-stone-400 mx-1">•</span>
+                          <span className="text-stone-500 font-mono text-[11px]">
+                            https://saporicafe.in{selectedPage.slug === '/' ? '' : selectedPage.slug}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h4 className="text-base sm:text-lg text-[#1a0dab] hover:underline font-medium cursor-pointer leading-snug line-clamp-1">
+                        {selectedPage.seoTitle || `${selectedPage.title} | SAPORI CAFÉ & EATERY | Raja Park, Jaipur`}
+                      </h4>
+
+                      <p className="text-xs sm:text-sm text-stone-600 leading-relaxed line-clamp-2">
+                        {selectedPage.seoDescription ||
+                          'Authentic Italian dining, slow-fermented Neapolitan pizza, fresh pasta, and specialty coffee in Raja Park, Jaipur. Order online or book a table.'}
+                      </p>
+                    </div>
+
+                    {/* SEO Health Audit Indicators */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                      <div className="p-2.5 rounded-lg bg-[#F5EFE1]/40 border border-[#15370D]/15 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#15370D]/60 block">Title Length</span>
+                        <span className={`text-xs font-black ${
+                          (selectedPage.seoTitle?.length || 0) >= 30 && (selectedPage.seoTitle?.length || 0) <= 65
+                            ? 'text-emerald-700'
+                            : (selectedPage.seoTitle?.length || 0) === 0
+                            ? 'text-amber-700'
+                            : 'text-[#15370D]'
+                        }`}>
+                          {selectedPage.seoTitle?.length || 0} / 60 chars
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-[#F5EFE1]/40 border border-[#15370D]/15 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#15370D]/60 block">Description Length</span>
+                        <span className={`text-xs font-black ${
+                          (selectedPage.seoDescription?.length || 0) >= 120 && (selectedPage.seoDescription?.length || 0) <= 165
+                            ? 'text-emerald-700'
+                            : (selectedPage.seoDescription?.length || 0) === 0
+                            ? 'text-amber-700'
+                            : 'text-[#15370D]'
+                        }`}>
+                          {selectedPage.seoDescription?.length || 0} / 160 chars
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-[#F5EFE1]/40 border border-[#15370D]/15 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#15370D]/60 block">Indexing</span>
+                        <span className={`text-xs font-black ${selectedPage.isPublished ? 'text-emerald-700' : 'text-amber-700'}`}>
+                          {selectedPage.isPublished ? 'Index, Follow' : 'Noindex / Draft'}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-[#F5EFE1]/40 border border-[#15370D]/15 text-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#15370D]/60 block">Keywords</span>
+                        <span className="text-xs font-black text-[#15370D]">
+                          {selectedPage.seoKeywords ? selectedPage.seoKeywords.split(',').length : 0} defined
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-4">

@@ -19,6 +19,9 @@ import {
   RotateCcw,
   ImageIcon,
   KeyRound,
+  ExternalLink,
+  Search,
+  FileCheck,
 } from 'lucide-react';
 import { SiteSettings } from '@/types';
 import { toast } from '@/lib/toast';
@@ -584,6 +587,169 @@ export default function AdminSettingsPage() {
                 placeholder="e.g. Complimentary Fresh Handcrafted Cold Brew tasting on all dine-in reservations this week."
                 className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 6: Search Engine Optimization & Google Search Console */}
+        <div className="bg-[#FFFFFF] border border-[#15370D]/15 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
+          <div className="flex items-center justify-between border-b border-[#15370D]/10 pb-3">
+            <div className="flex items-center space-x-2">
+              <Search className="w-4 h-4 text-[#15370D]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#15370D]">
+                Search Engine Optimization (SEO) &amp; Google Search Console
+              </h2>
+            </div>
+            <span className="text-[10px] bg-[#15370D]/10 text-[#15370D] font-bold px-2 py-0.5 rounded-full border border-[#15370D]/20">
+              Schema.org &amp; Next.js Metadata
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Canonical Production Domain
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={settings.canonicalDomain || ''}
+                  onChange={(e) => setSettings({ ...settings, canonicalDomain: e.target.value })}
+                  placeholder="https://saporicafe.in or your production domain"
+                  className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 pl-8 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+                />
+                <Globe className="w-3.5 h-3.5 text-[#15370D]/50 absolute left-2.5 top-3" />
+              </div>
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                Used in canonical tags, sitemap.xml, robots.txt, and OpenGraph URLs.
+              </span>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold uppercase text-[#15370D]/70">
+                  Google Search Console Verification Token
+                </label>
+                <a
+                  href="https://search.google.com/search-console"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-[#15370D] hover:underline flex items-center space-x-1 font-semibold"
+                >
+                  <span>Open GSC</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+              </div>
+              <input
+                type="text"
+                value={settings.googleVerificationCode || ''}
+                onChange={(e) => setSettings({ ...settings, googleVerificationCode: e.target.value })}
+                placeholder="e.g. abcd1234efgh5678 or meta tag content value"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                Automatically rendered as &lt;meta name=&quot;google-site-verification&quot;&gt; across all public pages.
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Google Analytics 4 Measurement ID
+              </label>
+              <input
+                type="text"
+                value={settings.googleAnalyticsId || ''}
+                onChange={(e) => setSettings({ ...settings, googleAnalyticsId: e.target.value })}
+                placeholder="e.g. G-ABC123XYZ"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                Optional GA4 stream ID for tracking search arrivals and conversions.
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Meta Title Pattern Template
+              </label>
+              <input
+                type="text"
+                value={settings.metaTitleTemplate || ''}
+                onChange={(e) => setSettings({ ...settings, metaTitleTemplate: e.target.value })}
+                placeholder="%s | SAPORI CAFÉ & EATERY | Raja Park, Jaipur"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+              <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
+                Use %s as page title variable (e.g. Italian Menu | SAPORI CAFÉ).
+              </span>
+            </div>
+
+            <div className="sm:col-span-2">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold uppercase text-[#15370D]/70">
+                  Global Meta Description
+                </label>
+                <span className={`text-[10px] font-bold ${(settings.defaultMetaDescription?.length || 0) > 160 ? 'text-amber-700' : 'text-[#15370D]/60'}`}>
+                  {settings.defaultMetaDescription?.length || 0}/160 characters (recommended 120-160)
+                </span>
+              </div>
+              <textarea
+                rows={2}
+                value={settings.defaultMetaDescription || ''}
+                onChange={(e) => setSettings({ ...settings, defaultMetaDescription: e.target.value })}
+                placeholder="Experience artisanal wood-fired Neapolitan pizza, handcrafted pasta, and specialty coffee in Raja Park, Jaipur. Dine-in, takeaway, and fast local delivery."
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Default Local SEO Keywords (Comma Separated)
+              </label>
+              <input
+                type="text"
+                value={settings.defaultKeywords || ''}
+                onChange={(e) => setSettings({ ...settings, defaultKeywords: e.target.value })}
+                placeholder="cafes in raja park, best italian restaurant jaipur, wood fired pizza jaipur, specialty coffee jaipur"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+            </div>
+          </div>
+
+          {/* Quick Technical SEO Testing & Inspection Links */}
+          <div className="p-3.5 rounded-xl bg-[#F5EFE1]/50 border border-[#15370D]/15 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center space-x-2 text-[#15370D]">
+              <FileCheck className="w-4 h-4 text-[#15370D]" />
+              <span className="font-bold">Live Technical SEO Endpoints:</span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <a
+                href="/sitemap.xml"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#FFFFFF] border border-[#15370D]/20 hover:bg-[#F5EFE1] text-[#15370D] font-bold text-[11px] transition-colors"
+              >
+                <span>/sitemap.xml</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+              <a
+                href="/robots.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#FFFFFF] border border-[#15370D]/20 hover:bg-[#F5EFE1] text-[#15370D] font-bold text-[11px] transition-colors"
+              >
+                <span>/robots.txt</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+              <a
+                href="https://search.google.com/test/rich-results"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#15370D] text-[#FFFFFF] hover:bg-[#15370D]/90 font-bold text-[11px] transition-colors"
+              >
+                <span>Test Rich Results</span>
+                <ExternalLink className="w-2.5 h-2.5 text-[#DEB853]" />
+              </a>
             </div>
           </div>
         </div>

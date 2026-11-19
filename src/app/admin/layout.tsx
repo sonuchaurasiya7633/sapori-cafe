@@ -141,6 +141,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-[#F5EFE1] flex flex-col md:flex-row overflow-x-hidden selection:bg-[#15370D] selection:text-[#F5EFE1]">
+      <head>
+        <meta name="robots" content="noindex, nofollow" />
+      </head>
       {/* Mobile Topbar */}
       <header className="md:hidden bg-[#15370D] text-[#F5EFE1] px-4 py-3 flex items-center justify-between sticky top-0 z-40 border-b border-[#F5EFE1]/10 shadow-sm">
         <div className="flex items-center space-x-3">

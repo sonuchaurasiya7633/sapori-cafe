@@ -28,6 +28,14 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroImageUrl: '/images/hero-cafe.webp',
   footerImageUrl: '',
   footerBannerUrl: '',
+  googleVerificationCode: '',
+  googleAnalyticsId: '',
+  metaTitleTemplate: '%s | SAPORI CAFÉ & EATERY | Raja Park, Jaipur',
+  defaultMetaDescription:
+    'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.',
+  defaultKeywords:
+    'Sapori Cafe Jaipur, Raja Park Cafe, Neapolitan Pizza Jaipur, Specialty Coffee Jaipur, Best Cafe in Raja Park, Coffee Shop Jaipur',
+  canonicalDomain: 'saporicafe.in',
 };
 
 export const SEED_CATEGORIES: Category[] = [
