@@ -47,6 +47,10 @@ const nextConfig = {
             value: 'SAMEORIGIN',
           },
           {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+          {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },

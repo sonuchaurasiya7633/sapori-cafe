@@ -168,6 +168,12 @@ export function getFriendlyAuthError(err: any): string {
   switch (code) {
     case 'auth/popup-closed-by-user':
       return 'Sign-in cancelled. Popup was closed before finishing.';
+    case 'auth/popup-blocked':
+      return 'Browser blocked the popup window. Please allow popups for saporicafe.in and try again.';
+    case 'auth/unauthorized-domain':
+      return 'Domain not authorized. Please add saporicafe.in and www.saporicafe.in to Firebase Console > Authentication > Settings > Authorized Domains.';
+    case 'auth/internal-error':
+      return 'Firebase setup error. Please ensure saporicafe.in is added to Authorized Domains in Firebase Console.';
     case 'auth/cancelled-popup-request':
       return 'Only one popup request allowed at a time.';
     case 'auth/wrong-password':

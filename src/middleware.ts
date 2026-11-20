@@ -48,6 +48,9 @@ export function middleware(request: NextRequest) {
   // Referrer Policy
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+  // Allow Google & Firebase OAuth Popups to communicate with the main window
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
   // Restrict Powerful Browser Features
   response.headers.set(
     'Permissions-Policy',
@@ -57,15 +60,15 @@ export function middleware(request: NextRequest) {
   // Content Security Policy
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://checkout.razorpay.com https://api.razorpay.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://checkout.razorpay.com https://api.razorpay.com https://apis.google.com https://www.google.com https://www.gstatic.com https://*.firebaseapp.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://*.razorpay.com https://*.google.com https://*.googleapis.com https://*.gstatic.com;
+    img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://*.razorpay.com https://*.google.com https://*.googleapis.com https://*.gstatic.com https://*.googleusercontent.com https://lh3.googleusercontent.com;
     font-src 'self' data: https://fonts.gstatic.com;
-    connect-src 'self' https://api.razorpay.com https://*.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://res.cloudinary.com https://*.mongodb.net;
-    frame-src 'self' https://api.razorpay.com https://*.razorpay.com https://www.google.com https://maps.google.com;
+    connect-src 'self' https://api.razorpay.com https://*.razorpay.com https://*.google-analytics.com https://*.analytics.google.com https://res.cloudinary.com https://*.mongodb.net https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://fcmregistrations.googleapis.com;
+    frame-src 'self' https://api.razorpay.com https://*.razorpay.com https://www.google.com https://maps.google.com https://*.firebaseapp.com https://accounts.google.com https://recaptcha.google.com;
     object-src 'none';
     base-uri 'self';
-    form-action 'self' https://api.razorpay.com;
+    form-action 'self' https://api.razorpay.com https://accounts.google.com;
     frame-ancestors 'self';
   `
     .replace(/\s{2,}/g, ' ')
