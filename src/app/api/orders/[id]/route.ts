@@ -75,9 +75,11 @@ export async function PATCH(
 
     // Handle order lifecycle status transition
     if (status && order) {
-      const transition = canTransitionOrder(order.status, status as OrderStatus, order.orderMode);
-      if (!transition.allowed) {
-        return NextResponse.json({ success: false, error: transition.reason }, { status: 400 });
+      if (actor !== 'admin') {
+        const transition = canTransitionOrder(order.status, status as OrderStatus, order.orderMode);
+        if (!transition.allowed) {
+          return NextResponse.json({ success: false, error: transition.reason }, { status: 400 });
+        }
       }
 
       const updatedStatus = dbStore.updateOrderStatus(order.id, status as OrderStatus, actor, note);
@@ -88,5 +90,45 @@ export async function PATCH(
     return NextResponse.json({ success: true, order }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to update order' }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    await connectToDatabase();
+
+    // 1. Delete from MongoDB Atlas
+    const deletedDb = await OrderModel.findOneAndDelete({
+      $or: [{ id }, { orderNumber: id }],
+    });
+
+    // 2. Delete from in-memory dbStore
+    const deletedStore = dbStore.deleteOrder(id);
+
+    if (!deletedDb && !deletedStore) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found' },
+        { status: 404, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Order deleted successfully',
+        deletedId: id,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
+  } catch (error) {
+    console.error('DELETE /api/orders/[id] error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete order' },
+      { status: 500, headers: NO_CACHE_HEADERS }
+    );
   }
 }

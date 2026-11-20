@@ -97,4 +97,41 @@ describe('Order State Machine Transitions', () => {
     // Delivery can transition to OUT_FOR_DELIVERY
     expect(canTransitionOrder('PREPARING', 'OUT_FOR_DELIVERY', 'delivery').allowed).toBe(true);
   });
+
+  it('deletes an order via DELETE /api/orders/[id]', async () => {
+    const { DELETE } = await import('../../src/app/api/orders/[id]/route');
+    const { NextRequest } = await import('next/server');
+    const { dbStore } = await import('../../src/lib/db/store');
+
+    // Create a temporary test order in store
+    const testOrder = dbStore.createOrder({
+      id: 'test-order-to-delete-' + Date.now(),
+      orderNumber: 'TEST-DEL-1',
+      orderMode: 'pickup',
+      items: [],
+      subtotal: 100,
+      tax: 5,
+      packagingFee: 25,
+      deliveryFee: 0,
+      discount: 0,
+      total: 130,
+      status: 'PLACED',
+      paymentStatus: 'PAID',
+      paymentMethod: 'cash_counter',
+      customer: { name: 'Test Del', phone: '9999999999' },
+      statusHistory: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    const req = new NextRequest(`http://localhost:3000/api/orders/${testOrder.id}`, {
+      method: 'DELETE',
+    });
+    const res = await DELETE(req, { params: Promise.resolve({ id: testOrder.id }) });
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(dbStore.getOrderById(testOrder.id)).toBeUndefined();
+  });
 });

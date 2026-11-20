@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (mode) query.orderMode = mode;
 
     const dbOrders = await OrderModel.find(query).sort({ createdAt: -1 }).lean();
-    if (dbOrders && dbOrders.length > 0) {
+    if (dbOrders) {
       const cleanOrders = dbOrders.map(({ _id, __v, ...rest }: any) => rest);
       return NextResponse.json({ success: true, count: cleanOrders.length, orders: cleanOrders }, { headers: NO_CACHE_HEADERS });
     }
