@@ -377,3 +377,24 @@ const NotificationTokenSchema = new Schema(
 export const NotificationTokenModel =
   mongoose.models.NotificationToken ||
   mongoose.model('NotificationToken', NotificationTokenSchema);
+
+// ==========================================
+// 13. CUSTOMER USER SCHEMA (GOOGLE, PHONE, EMAIL)
+// ==========================================
+const CustomerUserSchema = new Schema(
+  {
+    uid: { type: String, required: true, unique: true, index: true },
+    name: { type: String, required: true },
+    email: { type: String, lowercase: true, trim: true },
+    phone: { type: String, trim: true },
+    avatarUrl: { type: String },
+    authProvider: { type: String, default: 'google' },
+    savedAddress: { type: String },
+    totalOrdersCount: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
+
+export const CustomerUserModel =
+  mongoose.models.CustomerUser ||
+  mongoose.model('CustomerUser', CustomerUserSchema);

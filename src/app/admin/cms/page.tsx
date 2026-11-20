@@ -854,7 +854,7 @@ export default function AdminCMSPage() {
                           S
                         </div>
                         <div className="text-xs text-stone-700 leading-tight">
-                          <span className="font-semibold text-stone-900">Sapori Café &amp; Eatery</span>
+                          <span className="font-semibold text-stone-900">SAPORI CAFE</span>
                           <span className="text-stone-400 mx-1">•</span>
                           <span className="text-stone-500 font-mono text-[11px]">
                             https://saporicafe.in{selectedPage.slug === '/' ? '' : selectedPage.slug}

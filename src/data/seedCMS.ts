@@ -5,7 +5,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'home',
     slug: '/',
     title: 'Homepage',
-    seoTitle: 'SAPORI CAFE | A Place to Pause, Sip & Savour',
+    seoTitle: 'SAPORI CAFE',
     seoDescription: 'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.',
     seoKeywords: 'Sapori Cafe, SAPORI CAFE, Sapori Cafe Jaipur, Raja Park Cafe, Neapolitan Pizza, Specialty Coffee, Best Cafe in Jaipur',
     isPublished: true,

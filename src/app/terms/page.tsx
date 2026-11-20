@@ -40,7 +40,7 @@ export default function TermsPage() {
               Terms &amp; Conditions of Service
             </h1>
             <p className="text-xs text-[#15370D]/60 font-semibold uppercase tracking-wider mt-2">
-              SAPORI CAFÉ &amp; EATERY • Raja Park, Jaipur • Last Revised: November 19, 2026
+              SAPORI CAFE • Raja Park, Jaipur • Last Revised: November 19, 2026
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export default function TermsPage() {
             <section className="space-y-2">
               <h2 className="text-base font-black text-[#15370D]">1. Standalone Restaurant Model Disclosure</h2>
               <p>
-                <strong>SAPORI CAFÉ &amp; EATERY</strong> operates exclusively as a <strong>single-brand, inventory-led food and beverage establishment</strong> with its culinary facility located at 217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan 302004, India.
+                <strong>SAPORI CAFE</strong> operates exclusively as a <strong>single-brand, inventory-led food and beverage establishment</strong> with its culinary facility located at 217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan 302004, India.
               </p>
               <p>
                 This platform is an official direct-ordering channel operated solely by the restaurant and does <strong>not</strong> operate as a multi-seller e-commerce marketplace or third-party intermediary.
@@ -106,7 +106,7 @@ export default function TermsPage() {
             <section className="space-y-2">
               <h2 className="text-base font-black text-[#15370D]">6. Intellectual Property Rights</h2>
               <p>
-                All trademarks, logos, menu photography, typography, proprietary recipes, and visual assets associated with &quot;SAPORI CAFÉ &amp; EATERY&quot; belong exclusively to Sapori. Unauthorized reproduction, web scraping, or commercial misuse is strictly prohibited without prior written consent.
+                All trademarks, logos, menu photography, typography, proprietary recipes, and visual assets associated with &quot;SAPORI CAFE&quot; belong exclusively to Sapori. Unauthorized reproduction, web scraping, or commercial misuse is strictly prohibited without prior written consent.
               </p>
             </section>
 

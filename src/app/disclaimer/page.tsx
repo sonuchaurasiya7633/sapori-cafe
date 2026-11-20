@@ -40,7 +40,7 @@ export default function DisclaimerPage() {
               Website &amp; Food Disclaimer
             </h1>
             <p className="text-xs text-[#15370D]/60 font-semibold uppercase tracking-wider mt-2">
-              SAPORI CAFÉ &amp; EATERY • Raja Park, Jaipur • Last Revised: November 19, 2026
+              SAPORI CAFE • Raja Park, Jaipur • Last Revised: November 19, 2026
             </p>
           </div>
 
@@ -82,7 +82,7 @@ export default function DisclaimerPage() {
                 <span>4. Balanced Limitation of Liability</span>
               </div>
               <p>
-                To the fullest extent permissible under the Consumer Protection Act, 2019 and applicable Indian laws, Sapori Café &amp; Eatery shall not be liable for indirect, incidental, or consequential damages resulting from technical interruptions, internet carrier failures, or temporary website maintenance.
+                To the fullest extent permissible under the Consumer Protection Act, 2019 and applicable Indian laws, Sapori Cafe shall not be liable for indirect, incidental, or consequential damages resulting from technical interruptions, internet carrier failures, or temporary website maintenance.
               </p>
               <p>
                 Nothing in this disclaimer shall exclude or limit liability for gross negligence, willful misconduct, consumer rights protected by law, or proven food safety violations where liability cannot be excluded under the Food Safety and Standards Act, 2006.

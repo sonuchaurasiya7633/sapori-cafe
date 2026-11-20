@@ -204,7 +204,7 @@ export function getMenuItemSchema(item: MenuItem, settings?: SiteSettings) {
       url: `${baseUrl}/menu/${item.slug}`,
       seller: {
         '@type': 'Restaurant',
-        name: currentSettings.brandName || 'SAPORI CAFÉ & EATERY',
+        name: currentSettings.brandName || 'SAPORI CAFE',
       },
     },
     suitableForDiet: item.isVegan

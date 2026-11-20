@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ShoppingBag, Menu as MenuIcon, X, Calendar, Phone, Search } from 'lucide-react';
 import Logo from '@/components/ui/Logo';
 import { useCart } from '@/context/CartContext';
+import UserMenu from '@/components/auth/UserMenu';
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -101,6 +102,9 @@ export const Navbar: React.FC = () => {
                 <Calendar className="w-3.5 h-3.5 mr-1.5" />
                 <span>Book Table</span>
               </Link>
+
+              {/* User Account / Login Button */}
+              <UserMenu />
 
               {/* Cart Button */}
               <button

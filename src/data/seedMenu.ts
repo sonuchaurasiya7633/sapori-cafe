@@ -30,7 +30,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   footerBannerUrl: '',
   googleVerificationCode: '',
   googleAnalyticsId: '',
-  metaTitleTemplate: '%s | SAPORI CAFE | Raja Park, Jaipur',
+  metaTitleTemplate: '%s | SAPORI CAFE',
   defaultMetaDescription:
     'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings at Sapori Cafe in Raja Park, Jaipur.',
   defaultKeywords:

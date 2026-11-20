@@ -264,3 +264,17 @@ export interface AdminUser {
   role: string;
   updatedAt: string;
 }
+
+export interface CustomerUser {
+  id: string;
+  uid: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  avatarUrl?: string;
+  authProvider: 'google' | 'phone' | 'password';
+  savedAddress?: string;
+  totalOrdersCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}

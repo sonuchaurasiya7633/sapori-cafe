@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import AppShell from '@/components/layout/AppShell';
 import ToastProvider from '@/components/ui/ToastProvider';
@@ -28,9 +29,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = getBaseUrl(settings);
 
   const titleTemplate =
-    settings.metaTitleTemplate || '%s | SAPORI CAFE | Raja Park, Jaipur';
-  const defaultTitle =
-    'SAPORI CAFE | A Place to Pause, Sip & Savour';
+    settings.metaTitleTemplate || '%s | SAPORI CAFE';
+  const defaultTitle = 'SAPORI CAFE';
   const description =
     settings.defaultMetaDescription ||
     'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings at Sapori Cafe in Raja Park, Jaipur.';
@@ -145,9 +145,11 @@ export default async function RootLayout({
       <body className="bg-[#F5EFE1] text-[#15370D] min-h-screen flex flex-col antialiased selection:bg-[#15370D] selection:text-[#F5EFE1]">
         <ToastProvider />
         <CookieBanner />
-        <CartProvider>
-          <AppShell>{children}</AppShell>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <AppShell>{children}</AppShell>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
               Privacy &amp; Data Protection Policy
             </h1>
             <p className="text-xs text-[#15370D]/60 font-semibold uppercase tracking-wider mt-2">
-              Effective Date: November 2026 • Last Reviewed: November 19, 2026 • SAPORI CAFÉ &amp; EATERY
+              Effective Date: November 2026 • Last Reviewed: November 19, 2026 • SAPORI CAFE
             </p>
           </div>
 
@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-2">
               <h2 className="text-base font-black text-[#15370D]">1. Introduction &amp; Data Fiduciary Identity</h2>
               <p>
-                <strong>SAPORI CAFÉ &amp; EATERY</strong> (&quot;Sapori&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;), operating its artisanal culinary establishment at 217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan, India, serves as the <strong>Data Fiduciary</strong> regarding the processing of your personal data collected through our official website (https://saporicafe.in) and dining establishment.
+                <strong>SAPORI CAFE</strong> (&quot;Sapori&quot;, &quot;we&quot;, &quot;our&quot;, or &quot;us&quot;), operating its artisanal culinary establishment at 217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan, India, serves as the <strong>Data Fiduciary</strong> regarding the processing of your personal data collected through our official website (https://saporicafe.in) and dining establishment.
               </p>
               <p>
                 This Policy is published in strict adherence to the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act)</strong>, the <strong>Information Technology Act, 2000</strong>, the <strong>Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules, 2011</strong>, and the <strong>Consumer Protection (E-Commerce) Rules, 2020</strong>.
@@ -153,7 +153,7 @@ export default function PrivacyPolicyPage() {
                 Pursuant to Section 12 of the DPDP Act, 2023 and Rule 5(9) of the IT (Reasonable Security Practices) Rules, 2011, inquiries and rights requests must be directed to:
               </p>
               <div className="bg-[#15370D] text-[#F5EFE1] p-5 rounded-2xl space-y-2 text-xs">
-                <p className="font-bold text-[#DEB853] text-sm">Grievance Redressal Officer — Sapori Café &amp; Eatery</p>
+                <p className="font-bold text-[#DEB853] text-sm">Grievance Redressal Officer — Sapori Cafe</p>
                 <p className="flex items-center space-x-2"><MapPin className="w-3.5 h-3.5 text-[#DEB853] flex-shrink-0" /><span>217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan 302004, India</span></p>
                 <p className="flex items-center space-x-2"><Mail className="w-3.5 h-3.5 text-[#DEB853] flex-shrink-0" /><span>Email: hello@saporicafe.in (Subject: Attention: Grievance Officer)</span></p>
                 <p className="flex items-center space-x-2"><Phone className="w-3.5 h-3.5 text-[#DEB853] flex-shrink-0" /><span>Helpline: +91 63673 73302 (10:00 AM – 8:00 PM IST, Monday to Saturday)</span></p>

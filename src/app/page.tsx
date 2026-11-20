@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // fallback to store
   }
 
-  const title = homeCMS?.seoTitle || 'SAPORI CAFE | A Place to Pause, Sip & Savour';
+  const title = homeCMS?.seoTitle || 'SAPORI CAFE';
   const description =
     homeCMS?.seoDescription ||
     'Discover authentic 48-hour slow-fermented Neapolitan pizzas, precision Arabica roasts, golden handcrafted fries, and cozy Italian moments at Sapori Cafe in Raja Park, Jaipur.';

@@ -40,7 +40,7 @@ export default function DeliveryPolicyPage() {
               Delivery &amp; Fulfillment Policy
             </h1>
             <p className="text-xs text-[#15370D]/60 font-semibold uppercase tracking-wider mt-2">
-              SAPORI CAFÉ &amp; EATERY • Raja Park, Jaipur • Last Revised: November 19, 2026
+              SAPORI CAFE • Raja Park, Jaipur • Last Revised: November 19, 2026
             </p>
           </div>
 

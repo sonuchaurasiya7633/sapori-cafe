@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Banknote, Store, Bike, Utensils, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ShieldCheck, CreditCard, Banknote, Store, Bike, Utensils, AlertCircle, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { OrderMode, PaymentMethod } from '@/types';
 import { toast } from '@/lib/toast';
 
@@ -32,6 +33,26 @@ export default function CheckoutPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const { user, customerProfile, openAuthModal } = useAuth();
+
+  useEffect(() => {
+    if (user || customerProfile) {
+      if ((user?.displayName || customerProfile?.name) && !customerName) {
+        setCustomerName(user?.displayName || customerProfile?.name || '');
+      }
+      if ((user?.email || customerProfile?.email) && !customerEmail) {
+        setCustomerEmail(user?.email || customerProfile?.email || '');
+      }
+      if ((user?.phoneNumber || customerProfile?.phone) && !customerPhone) {
+        const p = user?.phoneNumber || customerProfile?.phone || '';
+        setCustomerPhone(p.replace(/^\+91/, '').trim());
+      }
+      if (customerProfile?.savedAddress && !address) {
+        setAddress(customerProfile.savedAddress);
+      }
+    }
+  }, [user, customerProfile]);
 
   if (items.length === 0) {
     return (
@@ -237,6 +258,51 @@ export default function CheckoutPage() {
                 ))}
               </div>
             </div>
+
+            {/* Express Auth Banner */}
+            {!user ? (
+              <div className="bg-[#FFFFFF] border border-[#DEB853]/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#DEB853]/20 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-5 h-5 text-[#DEB853]" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-[#15370D] uppercase tracking-wide">
+                      Express 1-Click Checkout
+                    </h3>
+                    <p className="text-[11px] text-stone-500">
+                      Sign in with Google or Phone to auto-fill details & track your order in real-time.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('google')}
+                  className="px-4 py-2 bg-[#15370D] hover:bg-[#1a4411] text-[#F5EFE1] font-bold text-xs rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
+                >
+                  Sign In / Register
+                </button>
+              </div>
+            ) : (
+              <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    ✓
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-xs font-bold text-emerald-950 truncate">
+                      Signed in as {customerName || user.displayName || 'Customer'}
+                    </p>
+                    <p className="text-[11px] text-emerald-800/80 truncate">
+                      {user.email || user.phoneNumber || ''}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-200/60 text-emerald-900 px-2.5 py-1 rounded-full">
+                  Verified Account
+                </span>
+              </div>
+            )}
 
             {/* Customer Details */}
             <div className="bg-[#FFFFFF] border border-[#15370D]/15 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs">
