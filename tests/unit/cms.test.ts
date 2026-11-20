@@ -37,15 +37,15 @@ describe('CMS Database Store & Dynamic Content Engine', () => {
 
     // Update SEO title
     const updated = dbStore.updateCMSPage('home', {
-      seoTitle: 'SAPORI CAFÉ & EATERY | Artisan Pizza & Specialty Coffee Jaipur',
+      seoTitle: 'SAPORI CAFE | Artisan Pizza & Specialty Coffee Jaipur',
     });
 
     expect(updated).toBeDefined();
-    expect(updated?.seoTitle).toBe('SAPORI CAFÉ & EATERY | Artisan Pizza & Specialty Coffee Jaipur');
+    expect(updated?.seoTitle).toBe('SAPORI CAFE | Artisan Pizza & Specialty Coffee Jaipur');
 
     // Verify persistence via fresh get
     const fresh = dbStore.getCMSPage('home');
-    expect(fresh?.seoTitle).toBe('SAPORI CAFÉ & EATERY | Artisan Pizza & Specialty Coffee Jaipur');
+    expect(fresh?.seoTitle).toBe('SAPORI CAFE | Artisan Pizza & Specialty Coffee Jaipur');
 
     // Update section fields
     const updatedSection = dbStore.updateCMSSection(

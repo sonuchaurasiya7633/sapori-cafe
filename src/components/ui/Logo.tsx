@@ -27,7 +27,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div
       className={`inline-flex flex-col items-center select-none ${className}`}
       style={{ color: colorHex }}
-      aria-label="Sapori Café & Eatery Logo"
+      aria-label="SAPORI CAFE Logo"
     >
       <svg
         viewBox="0 0 240 100"

@@ -1110,7 +1110,7 @@ export default function AdminOrdersPage() {
             <div className="bg-[#F5EFE1]/40 border border-[#15370D]/15 rounded-2xl p-5 space-y-4 font-mono text-xs text-[#15370D]">
               <div className="text-center space-y-1 border-b border-[#15370D]/10 pb-3">
                 <h4 className="font-black text-sm uppercase tracking-wide">
-                  SAPORI CAFÉ & EATERY
+                  SAPORI CAFE
                 </h4>
                 <p className="text-[10px] text-[#15370D]/70 font-sans">
                   217/1, Ramgali No. 1, Raja Park, Jaipur • +91 63673 73302

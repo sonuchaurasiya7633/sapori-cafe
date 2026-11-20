@@ -5,9 +5,9 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'home',
     slug: '/',
     title: 'Homepage',
-    seoTitle: 'SAPORI CAFÉ & EATERY | A Place to Pause, Sip & Savour | Raja Park, Jaipur',
+    seoTitle: 'SAPORI CAFE | A Place to Pause, Sip & Savour',
     seoDescription: 'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.',
-    seoKeywords: 'Sapori Cafe, Raja Park Jaipur, Neapolitan Pizza, Specialty Coffee, Best Cafe in Jaipur',
+    seoKeywords: 'Sapori Cafe, SAPORI CAFE, Sapori Cafe Jaipur, Raja Park Cafe, Neapolitan Pizza, Specialty Coffee, Best Cafe in Jaipur',
     isPublished: true,
     updatedAt: new Date().toISOString(),
     sections: [
@@ -81,7 +81,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'story',
     slug: '/story',
     title: 'Philosophy & Story',
-    seoTitle: 'Our Philosophy & Story | Sapori Café & Eatery, Jaipur',
+    seoTitle: 'Our Philosophy & Story | SAPORI CAFE, Jaipur',
     seoDescription: 'Learn about our 48-hour slow cold fermentation dough, specialty Arabica espresso science, and artisanal culinary craft in Raja Park, Jaipur.',
     seoKeywords: 'Sapori story, Neapolitan dough fermentation, cold brew science, artisanal cafe Jaipur',
     isPublished: true,
@@ -187,7 +187,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'faq',
     slug: '/faq',
     title: 'Frequently Asked Questions',
-    seoTitle: 'Frequently Asked Questions (FAQ) | Sapori Café & Eatery',
+    seoTitle: 'Frequently Asked Questions (FAQ) | SAPORI CAFE',
     seoDescription: 'Answers to common questions about our location, Neapolitan pizza fermentation, alcohol-free barrel-aged cold brew, and table reservations.',
     seoKeywords: 'Sapori FAQ, Jaipur cafe questions, Neapolitan pizza ingredients, cold brew halal',
     isPublished: true,
@@ -252,7 +252,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'contact',
     slug: '/contact',
     title: 'Visit & Contact',
-    seoTitle: 'Contact Us & Location | Sapori Café & Eatery Raja Park, Jaipur',
+    seoTitle: 'Contact Us & Location | SAPORI CAFE Raja Park, Jaipur',
     seoDescription: 'Find contact numbers, WhatsApp ordering link, business hours, and Google Maps directions for Sapori Café in Raja Park, Jaipur.',
     seoKeywords: 'Sapori contact, Sapori phone number, cafe in Raja Park Jaipur map, WhatsApp order',
     isPublished: true,
@@ -283,7 +283,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'privacy',
     slug: '/privacy',
     title: 'Privacy Policy',
-    seoTitle: 'Privacy Policy | Sapori Café & Eatery',
+    seoTitle: 'Privacy Policy | SAPORI CAFE',
     seoDescription: 'Read our guest privacy practices, PCI-DSS payment security, and data protection policies.',
     seoKeywords: 'privacy policy, sapori cafe terms, guest data security',
     isPublished: true,
@@ -296,7 +296,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
         fields: {
           title: 'Privacy Policy',
           lastUpdated: 'November 2026',
-          intro: 'SAPORI CAFÉ & EATERY located at 217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan, India values your trust. This Privacy Policy outlines how we collect, handle, and protect your personal information during café ordering, table reservations, and digital interactions.',
+          intro: 'SAPORI CAFE located at 217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan, India values your trust. This Privacy Policy outlines how we collect, handle, and protect your personal information during café ordering, table reservations, and digital interactions.',
           sections: [
             {
               title: '1. Information We Collect',
@@ -323,7 +323,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'terms',
     slug: '/terms',
     title: 'Terms & Conditions',
-    seoTitle: 'Terms & Conditions | Sapori Café & Eatery',
+    seoTitle: 'Terms & Conditions | SAPORI CAFE',
     seoDescription: 'Review the terms and conditions for ordering, table reservations, and digital services at Sapori Café.',
     seoKeywords: 'terms and conditions, sapori dining terms, order policy',
     isPublished: true,
@@ -335,7 +335,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
         isVisible: true,
         fields: {
           title: 'Terms & Conditions',
-          subtitle: 'SAPORI CAFÉ & EATERY • Raja Park, Jaipur',
+          subtitle: 'SAPORI CAFE • Raja Park, Jaipur',
           sections: [
             {
               title: '1. Menu & Pricing',
@@ -358,7 +358,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
     id: 'cancellation',
     slug: '/cancellation',
     title: 'Cancellation & Refund Policy',
-    seoTitle: 'Cancellation & Refund Policy | Sapori Café & Eatery',
+    seoTitle: 'Cancellation & Refund Policy | SAPORI CAFE',
     seoDescription: 'Understand our policies regarding order cancellations, payment refunds, and dish discrepancies.',
     seoKeywords: 'cancellation policy, refund policy, sapori cafe jaipur',
     isPublished: true,
@@ -370,7 +370,7 @@ export const SEED_CMS_PAGES: CMSPage[] = [
         isVisible: true,
         fields: {
           title: 'Cancellation & Refund Policy',
-          subtitle: 'SAPORI CAFÉ & EATERY • Raja Park, Jaipur',
+          subtitle: 'SAPORI CAFE • Raja Park, Jaipur',
           sections: [
             {
               title: '1. Order Cancellations',

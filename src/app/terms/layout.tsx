@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { getBaseUrl } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | Sapori Café & Eatery',
-  description: 'Official terms and conditions for orders, table reservations, and dining services at Sapori Café & Eatery, Jaipur.',
+  title: 'Terms & Conditions | SAPORI CAFE',
+  description: 'Official terms and conditions for orders, table reservations, and dining services at Sapori Cafe, Jaipur.',
   alternates: {
     canonical: `${getBaseUrl()}/terms`,
   },

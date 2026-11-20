@@ -19,16 +19,57 @@ import { dbStore } from '@/lib/db/store';
 import ProductCard from '@/components/menu/ProductCard';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const homeCMS = dbStore.getCMSPage('home');
+  let homeCMS = dbStore.getCMSPage('home') || dbStore.getCMSPage('/');
+  try {
+    const { connectToDatabase } = await import('@/lib/db/mongodb');
+    const { CMSPageModel } = await import('@/lib/db/models');
+    await connectToDatabase();
+    const dbDoc = await CMSPageModel.findOne({ $or: [{ slug: '/' }, { slug: 'home' }, { id: 'home' }] }).lean();
+    if (dbDoc) {
+      homeCMS = dbDoc as any;
+    }
+  } catch (e) {
+    // fallback to store
+  }
+
+  const title = homeCMS?.seoTitle || 'SAPORI CAFE | A Place to Pause, Sip & Savour';
+  const description =
+    homeCMS?.seoDescription ||
+    'Discover authentic 48-hour slow-fermented Neapolitan pizzas, precision Arabica roasts, golden handcrafted fries, and cozy Italian moments at Sapori Cafe in Raja Park, Jaipur.';
+
   return {
-    title: homeCMS?.seoTitle || 'SAPORI CAFÉ & EATERY | A Place to Pause, Sip & Savour | Raja Park, Jaipur',
-    description: homeCMS?.seoDescription || 'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.',
-    keywords: homeCMS?.seoKeywords || 'Sapori Cafe, Raja Park Jaipur, Neapolitan Pizza, Specialty Coffee',
+    title: {
+      absolute: title,
+    },
+    description,
+    keywords:
+      homeCMS?.seoKeywords ||
+      'Sapori Cafe, SAPORI CAFE, Sapori Cafe Jaipur, Raja Park Cafe, Neapolitan Pizza, Specialty Coffee, Best Cafe in Jaipur',
+    openGraph: {
+      title,
+      description,
+      siteName: 'SAPORI CAFE',
+      type: 'website',
+      images: [
+        {
+          url: '/images/hero-cafe-hd.webp',
+          width: 1200,
+          height: 630,
+          alt: 'SAPORI CAFE - Artisan Pizza & Specialty Coffee in Raja Park, Jaipur',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/images/hero-cafe-hd.webp'],
+    },
   };
 }
 
 export default function HomePage() {
-  const homeCMS = dbStore.getCMSPage('home');
+  const homeCMS = dbStore.getCMSPage('home') || dbStore.getCMSPage('/');
   const heroSec = homeCMS?.sections.find((s) => s.id === 'hero');
   const hero = heroSec?.fields || {};
   const heroVisible = heroSec ? heroSec.isVisible : true;
@@ -70,7 +111,7 @@ export default function HomePage() {
           <div className="absolute inset-0 z-0">
             <Image
               src={heroImageSrc}
-              alt="Sapori Café & Eatery exterior with fairy lights, specialty coffee and gourmet sandwiches in Raja Park, Jaipur"
+              alt="SAPORI CAFE exterior with fairy lights, specialty coffee and gourmet sandwiches in Raja Park, Jaipur"
               fill
               priority
               quality={95}
@@ -142,7 +183,7 @@ export default function HomePage() {
           <div className="relative w-full aspect-[4/5] max-h-[56vh] bg-[#071c05] overflow-hidden flex items-center justify-center">
             <Image
               src={heroMobileImageSrc}
-              alt="Sapori Café & Eatery storefront exterior with warm fairy lights and cozy Italian ambience in Raja Park, Jaipur"
+              alt="SAPORI CAFE storefront exterior with warm fairy lights and cozy Italian ambience in Raja Park, Jaipur"
               fill
               priority
               quality={95}

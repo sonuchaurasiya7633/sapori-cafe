@@ -7,10 +7,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const cms = dbStore.getCMSPage('contact');
   const settings = dbStore.getSettings();
 
-  const title = cms?.seoTitle || 'Contact Us, Location & Directions | Raja Park, Jaipur';
+  const title = cms?.seoTitle || 'Contact Us, Location & Directions | SAPORI CAFE Raja Park, Jaipur';
   const description =
     cms?.seoDescription ||
-    `Visit Sapori Café & Eatery at ${settings.address}. Call us on ${settings.contactPhone} for orders, inquiries, and reservations.`;
+    `Visit Sapori Cafe at ${settings.address}. Call us on ${settings.contactPhone} for orders, inquiries, and reservations.`;
 
   return {
     title,
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: `${baseUrl}/contact`,
     },
     openGraph: {
-      title: `${title} | Sapori Café`,
+      title: `${title} | SAPORI CAFE`,
       description,
       url: `${baseUrl}/contact`,
       images: ['/images/hero-cafe-hd.webp'],

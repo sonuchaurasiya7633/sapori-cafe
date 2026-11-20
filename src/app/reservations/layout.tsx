@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = cms?.seoTitle || 'Reserve a Table | Dining Experience in Raja Park';
   const description =
     cms?.seoDescription ||
-    'Reserve an intimate table or private gathering at Sapori Café & Eatery, Raja Park, Jaipur. Experience artisanal Italian dining and specialty brews.';
+    'Reserve an intimate table or private gathering at Sapori Cafe, Raja Park, Jaipur. Experience artisanal Italian dining and specialty brews.';
 
   return {
     title,

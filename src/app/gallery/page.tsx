@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const cms = dbStore.getCMSPage('gallery');
   return {
-    title: cms?.seoTitle || 'Café Gallery & Atmosphere | SAPORI CAFÉ & EATERY',
+    title: cms?.seoTitle || 'Café Gallery & Atmosphere | SAPORI CAFE',
     description: cms?.seoDescription || 'Browse photography of our artisanal pizzas, specialty coffee brews, and serene cafe ambiance in Raja Park, Jaipur.',
     keywords: cms?.seoKeywords || 'Sapori Cafe Gallery, Photos, Raja Park Jaipur Cafe',
   };

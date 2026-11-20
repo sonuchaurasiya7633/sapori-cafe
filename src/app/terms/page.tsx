@@ -7,9 +7,9 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = dbStore.getSettings();
   return {
-    title: `Terms & Conditions | Guest Dining Agreement | ${settings.brandName || 'SAPORI CAFÉ & EATERY'}`,
+    title: `Terms & Conditions | Guest Dining Agreement | ${settings.brandName || 'SAPORI CAFE'}`,
     description:
-      'Official Terms and Conditions for dining, online ordering, reservations, and payment processing at Sapori Café & Eatery, Raja Park, Jaipur under applicable Indian laws.',
+      'Official Terms and Conditions for dining, online ordering, reservations, and payment processing at Sapori Cafe, Raja Park, Jaipur under applicable Indian laws.',
     keywords:
       'terms and conditions, sapori cafe terms, dining agreement, consumer protection e-commerce rules, jaipur rajasthan jurisdiction',
   };

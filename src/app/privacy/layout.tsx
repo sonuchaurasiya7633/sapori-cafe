@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { getBaseUrl } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Sapori Café & Eatery',
-  description: 'Official privacy policy and customer data handling practices of Sapori Café & Eatery, Raja Park, Jaipur.',
+  title: 'Privacy Policy | SAPORI CAFE',
+  description: 'Official privacy policy and customer data handling practices of Sapori Cafe, Raja Park, Jaipur.',
   alternates: {
     canonical: `${getBaseUrl()}/privacy`,
   },

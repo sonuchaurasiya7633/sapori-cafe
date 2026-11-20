@@ -643,7 +643,13 @@ class SaporiDataStore {
 
   getCMSPage(id: string): CMSPage | undefined {
     const pages = this.getCMSPages();
-    return pages.find((p) => p.id === id || p.slug === id);
+    return pages.find(
+      (p) =>
+        p.id === id ||
+        p.slug === id ||
+        ((id === 'home' || id === '/') &&
+          (p.id === 'home' || p.id === 'page-home' || p.slug === '/' || p.slug === 'home'))
+    );
   }
 
   updateCMSPage(id: string, updates: Partial<CMSPage>): CMSPage | null {

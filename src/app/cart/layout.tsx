@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Your Order Basket | Sapori Café & Eatery',
+  title: 'Your Order Basket | SAPORI CAFE',
   robots: {
     index: false,
     follow: false,

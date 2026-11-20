@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${item.name} | Culinary Specialties`;
   const description =
     item.description ||
-    `Order ${item.name} handcrafted fresh at Sapori Café & Eatery, Raja Park, Jaipur. Artisan Neapolitan crusts and specialty coffee.`;
+    `Order ${item.name} handcrafted fresh at Sapori Cafe, Raja Park, Jaipur. Artisan Neapolitan crusts and specialty coffee.`;
   const imageUrl = item.image
     ? item.image.startsWith('http')
       ? item.image

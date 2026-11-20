@@ -863,7 +863,7 @@ export default function AdminCMSPage() {
                       </div>
 
                       <h4 className="text-base sm:text-lg text-[#1a0dab] hover:underline font-medium cursor-pointer leading-snug line-clamp-1">
-                        {selectedPage.seoTitle || `${selectedPage.title} | SAPORI CAFÉ & EATERY | Raja Park, Jaipur`}
+                        {selectedPage.seoTitle || `${selectedPage.title} | SAPORI CAFE | Raja Park, Jaipur`}
                       </h4>
 
                       <p className="text-xs sm:text-sm text-stone-600 leading-relaxed line-clamp-2">
@@ -942,7 +942,7 @@ export default function AdminCMSPage() {
                         type="text"
                         value={selectedPage.seoTitle || ''}
                         onChange={(e) => handlePageMetadataChange('seoTitle', e.target.value)}
-                        placeholder="SAPORI CAFÉ & EATERY | Title..."
+                        placeholder="SAPORI CAFE | Title..."
                         className="w-full px-4 py-2.5 bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl text-xs text-[#15370D] focus:outline-none focus:ring-1 focus:ring-[#15370D]"
                       />
                     </div>

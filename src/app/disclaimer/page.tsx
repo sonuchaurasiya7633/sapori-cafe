@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = dbStore.getSettings();
   return {
-    title: `Website & Culinary Disclaimer | ${settings.brandName || 'SAPORI CAFÉ & EATERY'}`,
+    title: `Website & Culinary Disclaimer | ${settings.brandName || 'SAPORI CAFE'}`,
     description:
       'Official website disclaimer covering menu illustrations, seasonal ingredient availability, dietary allergen notices, and balanced liability limits under Indian law.',
     keywords:

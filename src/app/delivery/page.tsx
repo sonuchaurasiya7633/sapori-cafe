@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = dbStore.getSettings();
   return {
-    title: `Delivery Policy | Order Fulfillment Guidelines | ${settings.brandName || 'SAPORI CAFÉ & EATERY'}`,
+    title: `Delivery Policy | Order Fulfillment Guidelines | ${settings.brandName || 'SAPORI CAFE'}`,
     description:
       'Review official doorstep delivery zones, packaging fees, minimum order values, and estimated preparation turnaround across Raja Park and Jaipur.',
     keywords:

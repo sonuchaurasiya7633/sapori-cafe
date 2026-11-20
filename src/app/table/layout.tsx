@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Dine-In Table Order | Sapori Café & Eatery',
+  title: 'Dine-In Table Order | SAPORI CAFE',
   robots: {
     index: false,
     follow: false,

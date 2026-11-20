@@ -40,6 +40,6 @@ describe('MongoDB Atlas Database Connection', () => {
 
     const settings = await SiteSettingsModel.findOne();
     expect(settings).toBeDefined();
-    expect(settings?.brandName).toContain('SAPORI CAFÉ');
+    expect(settings?.brandName).toContain('SAPORI CAFE');
   }, 15000);
 });

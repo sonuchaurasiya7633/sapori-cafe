@@ -702,11 +702,11 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={settings.metaTitleTemplate || ''}
                 onChange={(e) => setSettings({ ...settings, metaTitleTemplate: e.target.value })}
-                placeholder="%s | SAPORI CAFÉ & EATERY | Raja Park, Jaipur"
+                placeholder="%s | SAPORI CAFE | Raja Park, Jaipur"
                 className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
               />
               <span className="text-[10px] text-[#15370D]/60 mt-0.5 block">
-                Use %s as page title variable (e.g. Italian Menu | SAPORI CAFÉ).
+                Use %s as page title variable (e.g. Italian Menu | SAPORI CAFE).
               </span>
             </div>
 

@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = dbStore.getSettings();
   return {
-    title: `Cancellation & Refund Policy | Turnaround Guidelines | ${settings.brandName || 'SAPORI CAFÉ & EATERY'}`,
+    title: `Cancellation & Refund Policy | Turnaround Guidelines | ${settings.brandName || 'SAPORI CAFE'}`,
     description:
       'Review official order cancellation rules, kitchen preparation cut-offs, refund turnaround schedules, and payment reversal timelines at Sapori Café Jaipur.',
     keywords:

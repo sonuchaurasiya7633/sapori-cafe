@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = dbStore.getSettings();
   return {
-    title: `Privacy Policy | Digital Data Protection | ${settings.brandName || 'SAPORI CAFÉ & EATERY'}`,
+    title: `Privacy Policy | Digital Data Protection | ${settings.brandName || 'SAPORI CAFE'}`,
     description:
       'Learn how Sapori Café collects, processes, and protects your personal data under the Digital Personal Data Protection Act, 2023 (DPDP Act) and applicable Indian laws.',
     keywords:

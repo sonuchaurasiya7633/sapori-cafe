@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const settings = dbStore.getSettings();
   return {
-    title: `Cookie Policy & Tracking Preferences | ${settings.brandName || 'SAPORI CAFÉ & EATERY'}`,
+    title: `Cookie Policy & Tracking Preferences | ${settings.brandName || 'SAPORI CAFE'}`,
     description:
       'Learn about how Sapori Café uses essential and analytics cookies, and manage your cookie consent preferences in compliance with the DPDP Act 2023.',
     keywords:

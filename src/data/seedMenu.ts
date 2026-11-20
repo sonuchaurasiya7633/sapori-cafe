@@ -1,7 +1,7 @@
 import { Category, MenuItem, SiteSettings } from '@/types';
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  brandName: 'SAPORI CAFÉ & EATERY',
+  brandName: 'SAPORI CAFE',
   brandTagline: 'A PLACE TO PAUSE, SIP & SAVOUR',
   secondaryBrandLine: 'FOOD • COFFEE • GOOD VIBES',
   address: '217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan, India',
@@ -30,9 +30,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   footerBannerUrl: '',
   googleVerificationCode: '',
   googleAnalyticsId: '',
-  metaTitleTemplate: '%s | SAPORI CAFÉ & EATERY | Raja Park, Jaipur',
+  metaTitleTemplate: '%s | SAPORI CAFE | Raja Park, Jaipur',
   defaultMetaDescription:
-    'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.',
+    'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings at Sapori Cafe in Raja Park, Jaipur.',
   defaultKeywords:
     'Sapori Cafe Jaipur, Raja Park Cafe, Neapolitan Pizza Jaipur, Specialty Coffee Jaipur, Best Cafe in Raja Park, Coffee Shop Jaipur',
   canonicalDomain: 'saporicafe.in',

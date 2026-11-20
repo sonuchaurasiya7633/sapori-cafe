@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const cms = dbStore.getCMSPage('faq');
   return {
-    title: cms?.seoTitle || 'Frequently Asked Questions | SAPORI CAFÉ & EATERY',
+    title: cms?.seoTitle || 'Frequently Asked Questions | SAPORI CAFE',
     description: cms?.seoDescription || 'Answers to common questions regarding our authentic Neapolitan pizzas, alcohol-free barrel-aged cold brews, table bookings and contactless QR ordering.',
     keywords: cms?.seoKeywords || 'Sapori Cafe FAQs, Pizza Jaipur, Table Booking',
   };

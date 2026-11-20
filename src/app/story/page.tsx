@@ -7,7 +7,7 @@ import { dbStore } from '@/lib/db/store';
 export async function generateMetadata(): Promise<Metadata> {
   const storyCMS = dbStore.getCMSPage('story');
   return {
-    title: storyCMS?.seoTitle || 'Our Story & Philosophy | SAPORI CAFÉ & EATERY',
+    title: storyCMS?.seoTitle || 'Our Story & Philosophy | SAPORI CAFE',
     description: storyCMS?.seoDescription || 'The story behind Sapori Cafe, 48-hour slow-fermentation Neapolitan pizza, and specialty coffee science in Raja Park, Jaipur.',
     keywords: storyCMS?.seoKeywords || 'Sapori Story, Neapolitan Pizza Jaipur, Specialty Coffee',
   };

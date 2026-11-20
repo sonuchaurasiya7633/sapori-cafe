@@ -21,7 +21,7 @@ describe('Technical SEO & Structured Data Schemas', () => {
     const schema = getRestaurantSchema();
     expect(schema['@context']).toBe('https://schema.org');
     expect(schema['@type']).toBe('Restaurant');
-    expect(schema.name).toContain('SAPORI CAFÉ');
+    expect(schema.name).toBe('SAPORI CAFE');
     expect(schema.address['@type']).toBe('PostalAddress');
     expect(schema.address.addressLocality).toBe('Jaipur');
     expect(schema.address.addressRegion).toBe('Rajasthan');
@@ -39,7 +39,7 @@ describe('Technical SEO & Structured Data Schemas', () => {
     const websiteSchema = getWebSiteSchema();
     expect(websiteSchema['@context']).toBe('https://schema.org');
     expect(websiteSchema['@type']).toBe('WebSite');
-    expect(websiteSchema.name).toContain('SAPORI CAFÉ');
+    expect(websiteSchema.name).toBe('SAPORI CAFE');
     expect(websiteSchema.potentialAction['@type']).toBe('SearchAction');
     expect(websiteSchema.potentialAction.target.urlTemplate).toContain('/search?q={search_term_string}');
   });

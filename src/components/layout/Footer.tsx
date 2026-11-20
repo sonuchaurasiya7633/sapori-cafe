@@ -370,7 +370,7 @@ export const Footer: React.FC = () => {
       {/* Bottom Legal & Policy Bar on Warm Cream */}
       <div className="relative bg-[#F5EFE1] text-[#15370D] py-3.5 sm:py-4 px-4 sm:px-6 lg:px-8 border-t border-[#DEB853]/40 z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-start text-xs sm:text-[13px] text-[#15370D]/85 space-y-2 md:space-y-0 text-center md:text-left font-medium">
-          <p className="mr-0 md:mr-4">© {currentYear} {settings.brandName || 'SAPORI CAFÉ & EATERY'}. All rights reserved.</p>
+          <p className="mr-0 md:mr-4">© {currentYear} {settings.brandName || 'SAPORI CAFE'}. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-[13px] text-[#15370D]/80">
             <span className="hidden md:inline text-[#15370D]/35">|</span>
             <Link href="/privacy" className="hover:text-[#15370D] hover:underline transition-colors py-0.5">

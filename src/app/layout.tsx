@@ -28,14 +28,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = getBaseUrl(settings);
 
   const titleTemplate =
-    settings.metaTitleTemplate || '%s | SAPORI CAFÉ & EATERY | Raja Park, Jaipur';
+    settings.metaTitleTemplate || '%s | SAPORI CAFE | Raja Park, Jaipur';
   const defaultTitle =
-    'SAPORI CAFÉ & EATERY | A Place to Pause, Sip & Savour | Raja Park, Jaipur';
+    'SAPORI CAFE | A Place to Pause, Sip & Savour';
   const description =
     settings.defaultMetaDescription ||
-    'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.';
+    'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings at Sapori Cafe in Raja Park, Jaipur.';
   const keywords =
     settings.defaultKeywords?.split(',').map((k) => k.trim()) || [
+      'Sapori Cafe',
+      'SAPORI CAFE',
       'Sapori Cafe Jaipur',
       'Sapori Cafe Raja Park',
       'Cafe in Raja Park Jaipur',
@@ -53,9 +55,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     keywords,
-    authors: [{ name: settings.brandName || 'Sapori Café & Eatery' }],
-    creator: settings.brandName || 'Sapori Café & Eatery',
-    publisher: settings.brandName || 'Sapori Café & Eatery',
+    authors: [{ name: settings.brandName || 'SAPORI CAFE' }],
+    creator: settings.brandName || 'SAPORI CAFE',
+    publisher: settings.brandName || 'SAPORI CAFE',
     formatDetection: {
       email: true,
       address: true,
@@ -65,16 +67,16 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: baseUrl,
     },
     openGraph: {
-      title: 'SAPORI CAFÉ & EATERY | Artisan Pizza & Specialty Coffee in Jaipur',
+      title: 'SAPORI CAFE | Artisan Pizza & Specialty Coffee in Jaipur',
       description,
       url: baseUrl,
-      siteName: settings.brandName || 'Sapori Café & Eatery',
+      siteName: settings.brandName || 'SAPORI CAFE',
       images: [
         {
           url: '/images/hero-cafe-hd.webp',
           width: 1200,
           height: 630,
-          alt: 'Sapori Cafe & Eatery Raja Park Jaipur exterior and dining atmosphere',
+          alt: 'SAPORI CAFE Raja Park Jaipur exterior and dining atmosphere',
         },
       ],
       locale: 'en_IN',
@@ -82,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'SAPORI CAFÉ & EATERY | Raja Park, Jaipur',
+      title: 'SAPORI CAFE | Raja Park, Jaipur',
       description,
       images: ['/images/hero-cafe-hd.webp'],
     },

@@ -722,7 +722,7 @@ export default function ReservationsPage() {
         {/* Business Contact Footer */}
         <div className="bg-[#FFFFFF] border border-[#15370D]/15 rounded-2xl p-6 text-center space-y-2 text-xs">
           <p className="font-bold uppercase tracking-wider text-[#15370D]">
-            Sapori Café & Eatery • Raja Park Branch
+            Sapori Cafe • Raja Park Branch
           </p>
           <p className="text-[#15370D]/70">
             217/1, Ramgali Number 1, Near Panchwati Circle, Raja Park, Jaipur, Rajasthan, India

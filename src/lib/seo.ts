@@ -60,8 +60,8 @@ export function getRestaurantSchema(settings?: SiteSettings) {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
     '@id': `${baseUrl}/#restaurant`,
-    name: currentSettings.brandName || 'SAPORI CAFÉ & EATERY',
-    alternateName: ['Sapori Cafe', 'Sapori Eatery Jaipur', 'Sapori Cafe Raja Park'],
+    name: currentSettings.brandName || 'SAPORI CAFE',
+    alternateName: ['Sapori Cafe', 'SAPORI CAFE', 'Sapori Cafe Jaipur', 'Sapori Cafe Raja Park'],
     description:
       currentSettings.brandTagline ||
       'Handcrafted 48-hour slow-fermented Neapolitan pizzas, specialty Arabica cold brews, and comforting Italian bakery pairings in Raja Park, Jaipur.',
@@ -154,9 +154,9 @@ export function getWebSiteSchema(settings?: SiteSettings) {
     '@type': 'WebSite',
     '@id': `${baseUrl}/#website`,
     url: baseUrl,
-    name: currentSettings.brandName || 'SAPORI CAFÉ & EATERY',
+    name: currentSettings.brandName || 'SAPORI CAFE',
     description:
-      'Official website of Sapori Café & Eatery in Raja Park, Jaipur. Artisan Italian pizzas and specialty coffee.',
+      'Official website of Sapori Cafe in Raja Park, Jaipur. Artisan Italian pizzas and specialty coffee.',
     publisher: {
       '@id': `${baseUrl}/#restaurant`,
     },
