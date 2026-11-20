@@ -429,6 +429,10 @@ export default function AuthModal() {
                       </>
                     )}
                   </button>
+
+                  <p className="text-[10px] text-stone-500 text-center leading-relaxed pt-1">
+                    💡 Real SMS requires Firebase Blaze plan. For instant free login, use <strong>Google 1-Click</strong> or <strong>Email</strong>.
+                  </p>
                 </form>
               ) : (
                 // Step 2B: Enter 6-digit OTP

@@ -174,6 +174,8 @@ export function getFriendlyAuthError(err: any): string {
       return 'Domain not authorized. Please add saporicafe.in and www.saporicafe.in to Firebase Console > Authentication > Settings > Authorized Domains.';
     case 'auth/internal-error':
       return 'Firebase setup error. Please ensure saporicafe.in is added to Authorized Domains in Firebase Console.';
+    case 'auth/billing-not-enabled':
+      return 'Real SMS OTP requires Firebase Blaze (Pay-as-you-go) plan. Please sign in with 1-Click Google or Email, or upgrade to Blaze in Firebase Console.';
     case 'auth/operation-not-allowed':
       if (message.toLowerCase().includes('region') || message.toLowerCase().includes('sms')) {
         return 'SMS delivery for India (+91) is not enabled in your Firebase settings. Please enable India under Firebase Console > Authentication > Settings > SMS Region Policy, or sign in with Google or Email.';
