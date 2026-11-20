@@ -12,8 +12,15 @@ import {
   ShoppingBag,
   Sparkles,
   CheckCircle,
+  AlertCircle,
 } from 'lucide-react';
-import { playOrderChime, startOrderAlarm, stopOrderAlarm } from '@/lib/notifications/sound';
+import {
+  playOrderChime,
+  startOrderAlarm,
+  stopOrderAlarm,
+  unlockAudio,
+  isAudioUnlocked,
+} from '@/lib/notifications/sound';
 import { requestFcmToken, onFcmForegroundMessage } from '@/lib/firebase/client';
 import { toast } from '@/lib/toast';
 
@@ -31,23 +38,73 @@ interface OrderAlert {
 export default function RealtimeNotificationBanner() {
   const [activeAlert, setActiveAlert] = useState<OrderAlert | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [audioReady, setAudioReady] = useState(false);
   const [pushStatus, setPushStatus] = useState<'default' | 'granted' | 'denied'>('default');
   const [fcmRegistered, setFcmRegistered] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Check initial browser notification permission
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const lastAcknowledgedOrderIdRef = useRef<string | null>(null);
+  const isInitialMountRef = useRef(true);
+
+  // 1. Audio Unlock & Interaction Handlers
+  useEffect(() => {
+    const checkAudio = () => {
+      setAudioReady(isAudioUnlocked());
+    };
+    checkAudio();
+
+    const handleFirstInteraction = async () => {
+      const unlocked = await unlockAudio();
+      setAudioReady(unlocked);
+      if (unlocked) {
+        window.removeEventListener('click', handleFirstInteraction);
+        window.removeEventListener('touchstart', handleFirstInteraction);
+        window.removeEventListener('keydown', handleFirstInteraction);
+      }
+    };
+
+    window.addEventListener('click', handleFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { passive: true });
+    window.addEventListener('keydown', handleFirstInteraction, { passive: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, []);
+
+  // 2. Check initial browser notification permission & auto-register FCM if granted
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      setPushStatus(Notification.permission);
+      const perm = Notification.permission;
+      setPushStatus(perm);
+
+      if (perm === 'granted') {
+        requestFcmToken('admin')
+          .then((token) => {
+            if (token) setFcmRegistered(true);
+          })
+          .catch(() => {});
+      }
     }
   }, []);
 
-  // Handle incoming order notification (from either SSE or FCM)
+  // 3. Central Handler for incoming order alert (from Polling, SSE, or FCM)
   const handleIncomingOrder = (data: any) => {
+    const orderId = String(data.orderId || data.id || '');
+    if (!orderId) return;
+
+    // Deduplicate so we never ring twice for the exact same order
+    if (lastAcknowledgedOrderIdRef.current === orderId) {
+      return;
+    }
+    lastAcknowledgedOrderIdRef.current = orderId;
+
     const alert: OrderAlert = {
-      orderId: data.orderId || data.id,
-      orderNumber: data.orderNumber,
-      orderMode: data.orderMode,
+      orderId,
+      orderNumber: data.orderNumber || orderId.slice(-6),
+      orderMode: data.orderMode || 'delivery',
       total: Number(data.total) || 0,
       itemsCount: Number(data.itemsCount) || 1,
       customerName: data.customerName || 'Customer',
@@ -60,6 +117,7 @@ export default function RealtimeNotificationBanner() {
     // Play repeating restaurant order alarm (rings like Zomato/Swiggy POS every 3.5s)
     if (soundEnabled) {
       startOrderAlarm(60);
+      setAudioReady(true);
     }
 
     // Rich Toast
@@ -67,7 +125,7 @@ export default function RealtimeNotificationBanner() {
       description: `${alert.orderMode.toUpperCase()} • ${alert.itemsCount} items from ${alert.customerName}${
         alert.tableNumber ? ` • Table ${alert.tableNumber}` : ''
       }`,
-      duration: 8000,
+      duration: 10000,
     });
 
     // Native Browser Notification if allowed
@@ -76,14 +134,73 @@ export default function RealtimeNotificationBanner() {
         new Notification(`🔔 New Order #${alert.orderNumber}`, {
           body: `₹${alert.total} • ${alert.orderMode.toUpperCase()} • ${alert.customerName}`,
           icon: '/images/hero-mobile.jpg',
+          requireInteraction: true,
         });
       } catch (err) {
         console.warn('Native notification display error:', err);
       }
     }
+
+    // Broadcast DOM event so open tables/kitchen view refresh immediately
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sapori:new_order', { detail: alert }));
+    }
   };
 
-  // Connect to Realtime Server-Sent Events (SSE)
+  // 4. Ultra-reliable Polling Sync Engine (Every 3.5s)
+  // Guarantees orders trigger alarm on Vercel even if Serverless SSE disconnects
+  useEffect(() => {
+    let isCancelled = false;
+
+    const pollLatestOrder = async () => {
+      try {
+        const res = await fetch('/api/notifications/latest-order', {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.success && data.latestOrder && !isCancelled) {
+          const order = data.latestOrder;
+
+          // First mount: establish baseline without ringing for historical orders
+          if (isInitialMountRef.current) {
+            isInitialMountRef.current = false;
+            lastAcknowledgedOrderIdRef.current = order.id;
+            return;
+          }
+
+          // New order detected!
+          if (order.id && order.id !== lastAcknowledgedOrderIdRef.current) {
+            // Check if order was placed within last 10 minutes
+            const orderTime = new Date(order.createdAt).getTime();
+            const now = Date.now();
+            if (now - orderTime < 10 * 60 * 1000) {
+              handleIncomingOrder(order);
+            } else {
+              lastAcknowledgedOrderIdRef.current = order.id;
+            }
+          }
+        } else if (isInitialMountRef.current) {
+          isInitialMountRef.current = false;
+        }
+      } catch (err) {
+        // Silently retry on next poll cycle
+      }
+    };
+
+    // Run first check immediately
+    pollLatestOrder();
+    const pollInterval = setInterval(pollLatestOrder, 3500);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(pollInterval);
+    };
+  }, [soundEnabled]);
+
+  // 5. Connect to Realtime Server-Sent Events (SSE) for 0ms accelerator
   useEffect(() => {
     const connectSSE = () => {
       try {
@@ -101,8 +218,7 @@ export default function RealtimeNotificationBanner() {
 
         es.onerror = () => {
           es.close();
-          // Auto reconnect after 5 seconds
-          setTimeout(connectSSE, 5000);
+          setTimeout(connectSSE, 6000);
         };
       } catch (e) {
         console.warn('SSE connection error:', e);
@@ -111,7 +227,7 @@ export default function RealtimeNotificationBanner() {
 
     connectSSE();
 
-    // Listen to Firebase Cloud Messaging (foreground)
+    // Listen to Firebase Cloud Messaging (foreground push)
     const unsubscribeFcm = onFcmForegroundMessage((payload) => {
       const data = payload.data || payload.notification;
       if (data) {
@@ -149,23 +265,43 @@ export default function RealtimeNotificationBanner() {
     }
   };
 
+  const handleTestChime = async () => {
+    await unlockAudio();
+    setAudioReady(true);
+    playOrderChime();
+    toast.info('Sound chime tested successfully!');
+  };
+
   return (
     <>
       {/* Top Action Bar Utility for Notifications */}
       <div className="flex items-center gap-2">
+        {/* Audio Autoplay Unlock Prompt if not yet interacted */}
+        {!audioReady && (
+          <button
+            onClick={handleTestChime}
+            className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold rounded-lg flex items-center gap-1.5 animate-pulse shadow-sm cursor-pointer"
+            title="Click once to allow browser audio playback for order alarm"
+          >
+            <Volume2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Tap to Enable Sound</span>
+          </button>
+        )}
+
         {/* Sound Chime Toggle */}
         <button
           onClick={() => {
             const next = !soundEnabled;
             setSoundEnabled(next);
             if (next) {
-              playOrderChime();
+              unlockAudio().then(() => playOrderChime());
+              setAudioReady(true);
             } else {
               stopOrderAlarm();
             }
             toast.info(next ? 'Order Chime & Alarm Unmuted' : 'Order Chime & Alarm Muted');
           }}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border cursor-pointer ${
             soundEnabled
               ? 'bg-[#15370D]/10 text-[#15370D] border-[#15370D]/20 hover:bg-[#15370D]/20'
               : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
@@ -173,14 +309,14 @@ export default function RealtimeNotificationBanner() {
           title={soundEnabled ? 'Order sound is active (Click to mute)' : 'Order sound is muted (Click to unmute)'}
         >
           {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-          <span>{soundEnabled ? 'Chime ON' : 'Chime OFF'}</span>
+          <span>{soundEnabled ? 'Alarm ON' : 'Alarm OFF'}</span>
         </button>
 
         {/* Push Notification Toggle Button */}
         {pushStatus !== 'granted' ? (
           <button
             onClick={enablePushNotifications}
-            className="px-3 py-1.5 bg-[#DEB853] hover:bg-[#c9a444] text-[#071c05] font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+            className="px-3 py-1.5 bg-[#DEB853] hover:bg-[#c9a444] text-[#071c05] font-semibold text-xs rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             title="Enable Instant Push Notifications on New Orders"
           >
             <BellRing className="w-3.5 h-3.5 animate-bounce" />
@@ -197,7 +333,7 @@ export default function RealtimeNotificationBanner() {
         )}
       </div>
 
-      {/* Floating Animated New Order Banner */}
+      {/* Floating Animated New Order Banner with Alarm Controls */}
       {activeAlert && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-gradient-to-r from-[#15370D] via-[#1a4411] to-[#071c05] text-[#F5EFE1] p-4 rounded-2xl shadow-2xl border-2 border-[#DEB853] animate-in fade-in slide-in-from-top-6 duration-300">
           <div className="flex items-center justify-between gap-3">
@@ -210,7 +346,7 @@ export default function RealtimeNotificationBanner() {
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-[#DEB853] text-[#071c05]">
                     {activeAlert.orderMode.replace('_', ' ')}
                   </span>
-                  <span className="text-xs text-amber-200 font-mono">
+                  <span className="text-xs text-amber-200 font-mono font-bold">
                     Order #{activeAlert.orderNumber}
                   </span>
                   {activeAlert.tableNumber && (
@@ -234,11 +370,11 @@ export default function RealtimeNotificationBanner() {
                   stopOrderAlarm();
                   toast.info('Order alarm silenced');
                 }}
-                className="px-2.5 py-2 bg-red-600/80 hover:bg-red-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-all shrink-0 cursor-pointer animate-pulse"
+                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shrink-0 cursor-pointer animate-pulse shadow-md"
                 title="Silence Repeating Alarm"
               >
-                <VolumeX className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Silence Alarm</span>
+                <VolumeX className="w-4 h-4" />
+                <span>Silence Alarm</span>
               </button>
 
               <Link

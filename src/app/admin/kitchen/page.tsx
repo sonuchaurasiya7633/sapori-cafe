@@ -40,9 +40,12 @@ export default function KitchenDisplayPage() {
     fetchOrders();
     const pollInterval = setInterval(fetchOrders, 5000);
     const clockInterval = setInterval(() => setNow(Date.now()), 10000);
+    const onNewOrder = () => fetchOrders();
+    window.addEventListener('sapori:new_order', onNewOrder);
     return () => {
       clearInterval(pollInterval);
       clearInterval(clockInterval);
+      window.removeEventListener('sapori:new_order', onNewOrder);
     };
   }, []);
 

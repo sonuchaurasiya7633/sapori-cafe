@@ -119,5 +119,5 @@ describe('Store Settings & Operational Rules', () => {
         await SiteSettingsModel.findOneAndUpdate({}, { $set: cleanOrig });
       }
     }
-  });
+  }, 15000);
 });

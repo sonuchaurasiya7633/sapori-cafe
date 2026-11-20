@@ -85,8 +85,13 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     fetchInitialData();
-    const interval = setInterval(() => fetchInitialData(false), 12000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => fetchInitialData(false), 8000);
+    const onNewOrder = () => fetchInitialData(false);
+    window.addEventListener('sapori:new_order', onNewOrder);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('sapori:new_order', onNewOrder);
+    };
   }, []);
 
   // Update Status

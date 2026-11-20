@@ -8,7 +8,7 @@ let audioCtx: AudioContext | null = null;
 let alarmIntervalId: any = null;
 let alarmTimeoutId: any = null;
 
-function getAudioContext(): AudioContext | null {
+export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (!audioCtx) {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -16,16 +16,38 @@ function getAudioContext(): AudioContext | null {
       audioCtx = new AudioContextClass();
     }
   }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
-  }
   return audioCtx;
+}
+
+export function isAudioUnlocked(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ctx = getAudioContext();
+  return ctx ? ctx.state === 'running' : false;
+}
+
+export async function unlockAudio(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return false;
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+    return ctx.state === 'running';
+  } catch (e) {
+    console.warn('Could not unlock AudioContext:', e);
+    return false;
+  }
 }
 
 export function playOrderChime(): void {
   try {
     const ctx = getAudioContext();
     if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
 
     // High clarity dual-bell melody [C5, E5, G5, C6]
     const notes = [
@@ -36,7 +58,7 @@ export function playOrderChime(): void {
     ];
 
     const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(0.35, ctx.currentTime);
+    masterGain.gain.setValueAtTime(0.4, ctx.currentTime);
     masterGain.connect(ctx.destination);
 
     notes.forEach(({ freq, time, dur }) => {
@@ -49,7 +71,7 @@ export function playOrderChime(): void {
 
       // Bell envelope (crisp attack, exponential ramp)
       noteGain.gain.setValueAtTime(0.001, startTime);
-      noteGain.gain.exponentialRampToValueAtTime(0.4, startTime + 0.02);
+      noteGain.gain.exponentialRampToValueAtTime(0.45, startTime + 0.02);
       noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + dur);
 
       osc.connect(noteGain);
@@ -69,7 +91,9 @@ export function playOrderChime(): void {
  */
 export function startOrderAlarm(autoMuteSec = 60): void {
   stopOrderAlarm(); // Clear any existing alarm
-  playOrderChime();
+  unlockAudio().then(() => {
+    playOrderChime();
+  });
 
   alarmIntervalId = setInterval(() => {
     playOrderChime();

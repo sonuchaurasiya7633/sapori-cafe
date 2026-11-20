@@ -240,12 +240,10 @@ export async function POST(request: NextRequest) {
       dbStore.updateTableStatus(customer.tableNumber, 'occupied', saved.id);
     }
 
-    // Trigger Realtime Notification (Firebase FCM + SSE + Push) on each new placed order
-    if (saved.status === 'PLACED') {
-      dispatchOrderNotification(saved).catch((err) => {
-        console.warn('Realtime order notification warning:', err);
-      });
-    }
+    // Trigger Realtime Notification (Firebase FCM + SSE + Push) on every new order
+    dispatchOrderNotification(saved).catch((err) => {
+      console.warn('Realtime order notification warning:', err);
+    });
 
     return NextResponse.json({ success: true, order: saved }, { status: 201, headers: NO_CACHE_HEADERS });
   } catch (error) {
