@@ -260,6 +260,9 @@ const SiteSettingsSchema = new Schema<SiteSettings>(
     firebaseAppId: { type: String },
     firebaseMessagingSenderId: { type: String },
     firebaseVapidKey: { type: String },
+    firebaseAuthDomain: { type: String },
+    firebaseStorageBucket: { type: String },
+    firebaseMeasurementId: { type: String },
   },
   { timestamps: true }
 );

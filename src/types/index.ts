@@ -213,6 +213,9 @@ export interface SiteSettings {
   firebaseAppId?: string;
   firebaseMessagingSenderId?: string;
   firebaseVapidKey?: string;
+  firebaseAuthDomain?: string;
+  firebaseStorageBucket?: string;
+  firebaseMeasurementId?: string;
 }
 
 export interface NotificationToken {

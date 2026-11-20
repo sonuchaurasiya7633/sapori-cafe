@@ -911,13 +911,39 @@ export default function AdminSettingsPage() {
 
             <div>
               <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
-                Web Push VAPID Key / Messaging Sender ID
+                Web Push VAPID Key / Web Certificate
               </label>
               <input
                 type="text"
                 value={settings.firebaseVapidKey || ''}
                 onChange={(e) => setSettings({ ...settings, firebaseVapidKey: e.target.value })}
-                placeholder="e.g. BF8h0v_xyz123... (Cloud Messaging Web Push Certificate)"
+                placeholder="e.g. BM6PRNvt... (Web Push Certificate)"
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Firebase Web API Key
+              </label>
+              <input
+                type="text"
+                value={settings.firebaseApiKey || ''}
+                onChange={(e) => setSettings({ ...settings, firebaseApiKey: e.target.value })}
+                placeholder="e.g. AIzaSy..."
+                className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold uppercase text-[#15370D]/70 mb-1">
+                Firebase Web App ID
+              </label>
+              <input
+                type="text"
+                value={settings.firebaseAppId || ''}
+                onChange={(e) => setSettings({ ...settings, firebaseAppId: e.target.value })}
+                placeholder="e.g. 1:254068889011:web:..."
                 className="w-full bg-[#F5EFE1]/40 border border-[#15370D]/20 rounded-xl p-2.5 text-xs font-mono text-[#15370D] focus:outline-none focus:ring-2 focus:ring-[#15370D]"
               />
             </div>

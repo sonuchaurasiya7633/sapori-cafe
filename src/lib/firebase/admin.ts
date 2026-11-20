@@ -97,17 +97,17 @@ export async function dispatchOrderNotification(order: Order): Promise<{
 }> {
   const payload: RealtimeOrderPayload = {
     orderId: order.id,
-    orderNumber: order.orderNumber,
-    orderMode: order.orderMode,
-    total: order.total,
-    itemsCount: order.items.length,
-    customerName: order.customer.name,
-    customerPhone: order.customer.phone,
-    tableNumber: order.customer.tableNumber,
-    status: order.status,
-    paymentMethod: order.paymentMethod,
-    paymentStatus: order.paymentStatus,
-    createdAt: order.createdAt,
+    orderNumber: order.orderNumber || order.id?.slice(-6) || 'ORD-NEW',
+    orderMode: order.orderMode || 'delivery',
+    total: order.total ?? 0,
+    itemsCount: Array.isArray(order.items) ? order.items.length : (order as any).itemsCount || 1,
+    customerName: order.customer?.name || (order as any).customerName || 'Valued Guest',
+    customerPhone: order.customer?.phone || (order as any).customerPhone || '',
+    tableNumber: order.customer?.tableNumber,
+    status: order.status || 'placed',
+    paymentMethod: order.paymentMethod || 'cod',
+    paymentStatus: order.paymentStatus || 'pending',
+    createdAt: order.createdAt || new Date().toISOString(),
   };
 
   // 1. Instant local/SSE bus broadcast to all open admin/kitchen browsers
@@ -143,9 +143,9 @@ export async function dispatchOrderNotification(order: Order): Promise<{
     try {
       const messaging = getMessaging(fbApp);
 
-      const notificationTitle = `🔔 New Order #${order.orderNumber} (₹${order.total})`;
-      const notificationBody = `${order.orderMode.toUpperCase()} • ${order.items.length} items • ${order.customer.name}${
-        order.customer.tableNumber ? ` (Table ${order.customer.tableNumber})` : ''
+      const notificationTitle = `🔔 New Order #${payload.orderNumber} (₹${payload.total})`;
+      const notificationBody = `${String(payload.orderMode).toUpperCase()} • ${payload.itemsCount} items • ${payload.customerName}${
+        payload.tableNumber ? ` (Table ${payload.tableNumber})` : ''
       }`;
 
       // A) Send to topic 'admin_orders'
@@ -157,11 +157,11 @@ export async function dispatchOrderNotification(order: Order): Promise<{
             body: notificationBody,
           },
           data: {
-            orderId: order.id,
-            orderNumber: order.orderNumber,
-            total: String(order.total),
-            orderMode: order.orderMode,
-            customerName: order.customer.name,
+            orderId: String(payload.orderId),
+            orderNumber: String(payload.orderNumber),
+            total: String(payload.total),
+            orderMode: String(payload.orderMode),
+            customerName: String(payload.customerName),
             url: '/admin/orders',
           },
           webpush: {
@@ -195,11 +195,11 @@ export async function dispatchOrderNotification(order: Order): Promise<{
               body: notificationBody,
             },
             data: {
-              orderId: order.id,
-              orderNumber: order.orderNumber,
-              total: String(order.total),
-              orderMode: order.orderMode,
-              customerName: order.customer.name,
+              orderId: String(payload.orderId),
+              orderNumber: String(payload.orderNumber),
+              total: String(payload.total),
+              orderMode: String(payload.orderMode),
+              customerName: String(payload.customerName),
               url: '/admin/orders',
             },
           });
