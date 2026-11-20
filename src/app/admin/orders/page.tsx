@@ -28,6 +28,7 @@ import {
 import { Order, OrderStatus, PaymentStatus, OrderMode, MenuItem, DiningTable } from '@/types';
 import { getStatusBadgeInfo, canTransitionOrder } from '@/lib/orders/stateMachine';
 import { toast } from '@/lib/toast';
+import { stopOrderAlarm } from '@/lib/notifications/sound';
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -94,9 +95,26 @@ export default function AdminOrdersPage() {
     };
   }, []);
 
+  // View Order (silences continuous alarm & dispatches viewed event)
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrderDetails(order);
+    stopOrderAlarm();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('sapori:order_viewed', { detail: { orderId: order.id } })
+      );
+    }
+  };
+
   // Update Status
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingId(orderId);
+    stopOrderAlarm();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('sapori:order_status_updated', { detail: { orderId, newStatus } })
+      );
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
@@ -128,6 +146,12 @@ export default function AdminOrdersPage() {
   // Update Payment Status
   const handlePaymentStatusChange = async (orderId: string, newPaymentStatus: PaymentStatus) => {
     setUpdatingId(orderId);
+    stopOrderAlarm();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('sapori:order_status_updated', { detail: { orderId, newPaymentStatus } })
+      );
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',
@@ -162,6 +186,12 @@ export default function AdminOrdersPage() {
       return;
     }
     setUpdatingId(orderId);
+    stopOrderAlarm();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('sapori:order_status_updated', { detail: { orderId } })
+      );
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'DELETE',
@@ -528,7 +558,7 @@ export default function AdminOrdersPage() {
                       <tr key={order.id} className="hover:bg-[#F5EFE1]/20 transition-colors">
                         <td className="py-3.5 px-4 align-top">
                           <button
-                            onClick={() => setSelectedOrderDetails(order)}
+                            onClick={() => handleViewOrder(order)}
                             className="font-mono font-black text-xs hover:underline flex items-center space-x-1 text-left"
                           >
                             <span>{order.orderNumber}</span>
@@ -635,7 +665,7 @@ export default function AdminOrdersPage() {
                         <td className="py-3.5 px-4 text-right align-top whitespace-nowrap">
                           <div className="flex items-center justify-end space-x-1.5">
                             <button
-                              onClick={() => setSelectedOrderDetails(order)}
+                              onClick={() => handleViewOrder(order)}
                               title="View Order Bill & KOT"
                               className="w-7 h-7 bg-[#F5EFE1] text-[#15370D] hover:bg-[#15370D] hover:text-[#FFFFFF] rounded-lg flex items-center justify-center transition-colors"
                             >
@@ -670,7 +700,7 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <button
-                          onClick={() => setSelectedOrderDetails(order)}
+                          onClick={() => handleViewOrder(order)}
                           className="font-mono font-bold text-sm text-[#15370D] hover:underline flex items-center space-x-1"
                         >
                           <span>{order.orderNumber}</span>
@@ -770,7 +800,7 @@ export default function AdminOrdersPage() {
 
                       <div className="flex items-center space-x-1.5">
                         <button
-                          onClick={() => setSelectedOrderDetails(order)}
+                          onClick={() => handleViewOrder(order)}
                           className="p-1.5 rounded-lg bg-[#F5EFE1] text-[#15370D]"
                           title="View Bill / KOT"
                         >

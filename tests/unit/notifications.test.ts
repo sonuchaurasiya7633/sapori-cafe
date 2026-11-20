@@ -78,4 +78,14 @@ describe('Realtime Order Notifications & Firebase System', () => {
     expect(json.order.orderNumber).toContain('SAP-');
     expect(json.deliveryStats.sseBroadcast).toBe(true);
   });
+
+  it('manages continuous order alarm state in sound engine', async () => {
+    const { startOrderAlarm, stopOrderAlarm, isAlarmRinging } = await import('@/lib/notifications/sound');
+
+    expect(isAlarmRinging()).toBe(false);
+    startOrderAlarm(0); // Continuous
+    expect(isAlarmRinging()).toBe(true);
+    stopOrderAlarm();
+    expect(isAlarmRinging()).toBe(false);
+  });
 });

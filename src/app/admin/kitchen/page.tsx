@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChefHat, Clock, Check, Bell, RefreshCw, Volume2, VolumeX, AlertCircle, Utensils } from 'lucide-react';
 import { Order, OrderStatus } from '@/types';
 import { toast } from '@/lib/toast';
+import { stopOrderAlarm } from '@/lib/notifications/sound';
 
 export default function KitchenDisplayPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -51,6 +52,12 @@ export default function KitchenDisplayPage() {
 
   const handleUpdateStatus = async (orderId: string, nextStatus: OrderStatus) => {
     setUpdatingId(orderId);
+    stopOrderAlarm();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('sapori:order_status_updated', { detail: { orderId, nextStatus } })
+      );
+    }
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PATCH',

@@ -32,6 +32,7 @@ interface OrderAlert {
   itemsCount: number;
   customerName: string;
   tableNumber?: string;
+  status: string;
   receivedAt: number;
 }
 
@@ -45,6 +46,12 @@ export default function RealtimeNotificationBanner() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const lastAcknowledgedOrderIdRef = useRef<string | null>(null);
   const isInitialMountRef = useRef(true);
+  const activeAlertRef = useRef<OrderAlert | null>(null);
+
+  // Keep ref synced for polling closure
+  useEffect(() => {
+    activeAlertRef.current = activeAlert;
+  }, [activeAlert]);
 
   // 1. Audio Unlock & Interaction Handlers
   useEffect(() => {
@@ -90,12 +97,32 @@ export default function RealtimeNotificationBanner() {
     }
   }, []);
 
-  // 3. Central Handler for incoming order alert (from Polling, SSE, or FCM)
+  // 3. Dismiss Alarm when order is viewed or its status is updated anywhere in the app
+  useEffect(() => {
+    const handleDismissAlert = (e: any) => {
+      const targetOrderId = e.detail?.orderId;
+      const current = activeAlertRef.current;
+      if (!targetOrderId || !current || targetOrderId === current.orderId) {
+        stopOrderAlarm();
+        setActiveAlert(null);
+      }
+    };
+
+    window.addEventListener('sapori:order_viewed', handleDismissAlert);
+    window.addEventListener('sapori:order_status_updated', handleDismissAlert);
+
+    return () => {
+      window.removeEventListener('sapori:order_viewed', handleDismissAlert);
+      window.removeEventListener('sapori:order_status_updated', handleDismissAlert);
+    };
+  }, []);
+
+  // 4. Central Handler for incoming order alert (from Polling, SSE, or FCM)
   const handleIncomingOrder = (data: any) => {
     const orderId = String(data.orderId || data.id || '');
     if (!orderId) return;
 
-    // Deduplicate so we never ring twice for the exact same order
+    // Deduplicate so we never trigger twice for the exact same order
     if (lastAcknowledgedOrderIdRef.current === orderId) {
       return;
     }
@@ -109,14 +136,15 @@ export default function RealtimeNotificationBanner() {
       itemsCount: Number(data.itemsCount) || 1,
       customerName: data.customerName || 'Customer',
       tableNumber: data.tableNumber,
+      status: data.status || 'PLACED',
       receivedAt: Date.now(),
     };
 
     setActiveAlert(alert);
 
-    // Play repeating restaurant order alarm (rings like Zomato/Swiggy POS every 3.5s)
+    // Continuous bold bell repeating alarm (rings every 3.2s until viewed or status updated)
     if (soundEnabled) {
-      startOrderAlarm(60);
+      startOrderAlarm(0);
       setAudioReady(true);
     }
 
@@ -125,13 +153,13 @@ export default function RealtimeNotificationBanner() {
       description: `${alert.orderMode.toUpperCase()} • ${alert.itemsCount} items from ${alert.customerName}${
         alert.tableNumber ? ` • Table ${alert.tableNumber}` : ''
       }`,
-      duration: 10000,
+      duration: 15000,
     });
 
     // Native Browser Notification if allowed
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(`🔔 New Order #${alert.orderNumber}`, {
+        new Notification(`🔔 New Order #${alert.orderNumber} (₹${alert.total})`, {
           body: `₹${alert.total} • ${alert.orderMode.toUpperCase()} • ${alert.customerName}`,
           icon: '/images/hero-mobile.jpg',
           requireInteraction: true,
@@ -147,7 +175,7 @@ export default function RealtimeNotificationBanner() {
     }
   };
 
-  // 4. Ultra-reliable Polling Sync Engine (Every 3.5s)
+  // 5. Ultra-reliable Polling Sync Engine (Every 3.2s)
   // Guarantees orders trigger alarm on Vercel even if Serverless SSE disconnects
   useEffect(() => {
     let isCancelled = false;
@@ -163,6 +191,15 @@ export default function RealtimeNotificationBanner() {
 
         if (data.success && data.latestOrder && !isCancelled) {
           const order = data.latestOrder;
+          const currentAlert = activeAlertRef.current;
+
+          // If current alert's status was changed on another screen (e.g. accepted in kitchen)
+          if (currentAlert && (order.id === currentAlert.orderId || order.orderNumber === currentAlert.orderNumber)) {
+            if (!['PLACED', 'PENDING_PAYMENT'].includes(order.status)) {
+              stopOrderAlarm();
+              setActiveAlert(null);
+            }
+          }
 
           // First mount: establish baseline without ringing for historical orders
           if (isInitialMountRef.current) {
@@ -192,7 +229,7 @@ export default function RealtimeNotificationBanner() {
 
     // Run first check immediately
     pollLatestOrder();
-    const pollInterval = setInterval(pollLatestOrder, 3500);
+    const pollInterval = setInterval(pollLatestOrder, 3200);
 
     return () => {
       isCancelled = true;
@@ -200,7 +237,7 @@ export default function RealtimeNotificationBanner() {
     };
   }, [soundEnabled]);
 
-  // 5. Connect to Realtime Server-Sent Events (SSE) for 0ms accelerator
+  // 6. Connect to Realtime Server-Sent Events (SSE) for 0ms accelerator
   useEffect(() => {
     const connectSSE = () => {
       try {
@@ -269,7 +306,7 @@ export default function RealtimeNotificationBanner() {
     await unlockAudio();
     setAudioReady(true);
     playOrderChime();
-    toast.info('Sound chime tested successfully!');
+    toast.info('Bold service bell tested successfully!');
   };
 
   return (
@@ -281,9 +318,9 @@ export default function RealtimeNotificationBanner() {
           <button
             onClick={handleTestChime}
             className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold rounded-lg flex items-center gap-1.5 animate-pulse shadow-sm cursor-pointer"
-            title="Click once to allow browser audio playback for order alarm"
+            title="Click once to test and unlock continuous order bell alarm"
           >
-            <Volume2 className="w-3.5 h-3.5" />
+            <BellRing className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Tap to Enable Sound</span>
           </button>
         )}
@@ -299,14 +336,14 @@ export default function RealtimeNotificationBanner() {
             } else {
               stopOrderAlarm();
             }
-            toast.info(next ? 'Order Chime & Alarm Unmuted' : 'Order Chime & Alarm Muted');
+            toast.info(next ? 'Order Alarm Unmuted' : 'Order Alarm Muted');
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border cursor-pointer ${
             soundEnabled
               ? 'bg-[#15370D]/10 text-[#15370D] border-[#15370D]/20 hover:bg-[#15370D]/20'
               : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
           }`}
-          title={soundEnabled ? 'Order sound is active (Click to mute)' : 'Order sound is muted (Click to unmute)'}
+          title={soundEnabled ? 'Order alarm is active (Click to mute)' : 'Order alarm is muted (Click to unmute)'}
         >
           {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
           <span>{soundEnabled ? 'Alarm ON' : 'Alarm OFF'}</span>
@@ -333,13 +370,17 @@ export default function RealtimeNotificationBanner() {
         )}
       </div>
 
-      {/* Floating Animated New Order Banner with Alarm Controls */}
+      {/* Floating Animated New Order Banner with Continuous Ringing Indicator */}
       {activeAlert && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-gradient-to-r from-[#15370D] via-[#1a4411] to-[#071c05] text-[#F5EFE1] p-4 rounded-2xl shadow-2xl border-2 border-[#DEB853] animate-in fade-in slide-in-from-top-6 duration-300">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[#DEB853]/20 border border-[#DEB853]/40 flex items-center justify-center shrink-0">
-                <ShoppingBag className="w-6 h-6 text-[#DEB853] animate-pulse" />
+              <div className="w-12 h-12 rounded-xl bg-[#DEB853]/20 border border-[#DEB853]/40 flex items-center justify-center shrink-0 relative">
+                <BellRing className="w-6 h-6 text-[#DEB853] animate-bounce" />
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -354,12 +395,15 @@ export default function RealtimeNotificationBanner() {
                       Table {activeAlert.tableNumber}
                     </span>
                   )}
+                  <span className="text-[10px] bg-red-600/90 text-white font-bold px-2 py-0.5 rounded-full animate-pulse">
+                    ALARM RINGING
+                  </span>
                 </div>
                 <h4 className="text-base font-bold text-white mt-0.5">
                   ₹{activeAlert.total.toFixed(2)} • {activeAlert.customerName}
                 </h4>
                 <p className="text-xs text-stone-300">
-                  {activeAlert.itemsCount} {activeAlert.itemsCount === 1 ? 'item' : 'items'} • Just now
+                  {activeAlert.itemsCount} {activeAlert.itemsCount === 1 ? 'item' : 'items'} • Awaiting View or Status Update
                 </p>
               </div>
             </div>
@@ -370,11 +414,11 @@ export default function RealtimeNotificationBanner() {
                   stopOrderAlarm();
                   toast.info('Order alarm silenced');
                 }}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shrink-0 cursor-pointer animate-pulse shadow-md"
+                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-md"
                 title="Silence Repeating Alarm"
               >
                 <VolumeX className="w-4 h-4" />
-                <span>Silence Alarm</span>
+                <span>Silence</span>
               </button>
 
               <Link
@@ -382,8 +426,13 @@ export default function RealtimeNotificationBanner() {
                 onClick={() => {
                   stopOrderAlarm();
                   setActiveAlert(null);
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(
+                      new CustomEvent('sapori:order_viewed', { detail: { orderId: activeAlert.orderId } })
+                    );
+                  }
                 }}
-                className="px-3.5 py-2 bg-[#DEB853] hover:bg-[#c9a444] text-[#071c05] font-bold text-xs rounded-xl flex items-center gap-1.5 shadow transition-all shrink-0"
+                className="px-3.5 py-2 bg-[#DEB853] hover:bg-[#c9a444] text-[#071c05] font-bold text-xs rounded-xl flex items-center gap-1.5 shadow transition-all shrink-0 animate-pulse"
               >
                 <span>View Order</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -393,7 +442,7 @@ export default function RealtimeNotificationBanner() {
                   stopOrderAlarm();
                   setActiveAlert(null);
                 }}
-                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 title="Dismiss"
               >
                 <X className="w-5 h-5" />
