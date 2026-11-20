@@ -51,14 +51,19 @@ export async function getFirebaseAdmin(): Promise<App | null> {
       return null;
     }
 
-    const app = initializeApp({
+    const options: any = {
       credential: cert({
         projectId,
         clientEmail,
         privateKey,
       }),
-      databaseURL: databaseURL || `https://${projectId}-default-rtdb.firebaseio.com`,
-    });
+    };
+
+    if (databaseURL && !databaseURL.includes('default-rtdb.firebaseio.com')) {
+      options.databaseURL = databaseURL;
+    }
+
+    const app = initializeApp(options);
 
     isInitializing = false;
     return app;
@@ -117,18 +122,21 @@ export async function dispatchOrderNotification(order: Order): Promise<{
       return { sseBroadcast: true, fcmSent: false, rtdbWritten: false, tokensCount: 0 };
     }
 
-    // 2. Write to Firebase Realtime Database if databaseURL is active
-    try {
-      if (fbApp.options.databaseURL) {
+    // 2. Write to Firebase Realtime Database if an active databaseURL is configured
+    if (fbApp.options.databaseURL) {
+      try {
         const db = getDatabase(fbApp);
-        await db.ref(`live_orders/${order.id}`).set({
-          ...payload,
-          timestamp: Date.now(),
-        });
+        await Promise.race([
+          db.ref(`live_orders/${order.id}`).set({
+            ...payload,
+            timestamp: Date.now(),
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('RTDB timeout')), 1500)),
+        ]);
         rtdbWritten = true;
+      } catch (rtdbErr) {
+        // Non-blocking warning
       }
-    } catch (rtdbErr) {
-      console.warn('Firebase RTDB write warning:', rtdbErr);
     }
 
     // 3. Send Push Notifications via Firebase Cloud Messaging (FCM)

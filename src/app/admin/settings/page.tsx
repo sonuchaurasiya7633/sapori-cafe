@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { SiteSettings } from '@/types';
 import { toast } from '@/lib/toast';
-import { playOrderChime } from '@/lib/notifications/sound';
+import { playOrderChime, startOrderAlarm, stopOrderAlarm } from '@/lib/notifications/sound';
 import ImageUpload from '@/components/ui/ImageUpload';
 import ChangeCredentialsModal from '@/components/admin/ChangeCredentialsModal';
 
@@ -795,15 +795,33 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => playOrderChime()}
                 className="px-3 py-1.5 rounded-xl border border-[#15370D]/20 bg-[#F5EFE1] hover:bg-[#15370D]/10 text-[#15370D] text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Play Audio Bell Chime"
+                title="Play Single Audio Bell Chime"
               >
                 <Volume2 className="w-3.5 h-3.5" />
-                <span>Test Chime</span>
+                <span>Single Chime</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  startOrderAlarm(15);
+                  toast.success('Loud Order Alarm Triggered! (Auto-mutes in 15s or click Silence)', {
+                    action: {
+                      label: 'Silence Alarm',
+                      onClick: () => stopOrderAlarm(),
+                    },
+                  });
+                }}
+                className="px-3 py-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Test Repeating Order Alarm Ring"
+              >
+                <Volume2 className="w-3.5 h-3.5 text-red-600 animate-pulse" />
+                <span>Test Alarm (Loop)</span>
               </button>
 
               <button

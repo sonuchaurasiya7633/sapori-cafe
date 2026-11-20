@@ -13,7 +13,7 @@ import {
   Sparkles,
   CheckCircle,
 } from 'lucide-react';
-import { playOrderChime } from '@/lib/notifications/sound';
+import { playOrderChime, startOrderAlarm, stopOrderAlarm } from '@/lib/notifications/sound';
 import { requestFcmToken, onFcmForegroundMessage } from '@/lib/firebase/client';
 import { toast } from '@/lib/toast';
 
@@ -57,9 +57,9 @@ export default function RealtimeNotificationBanner() {
 
     setActiveAlert(alert);
 
-    // Play pleasant audio chime
+    // Play repeating restaurant order alarm (rings like Zomato/Swiggy POS every 3.5s)
     if (soundEnabled) {
-      playOrderChime();
+      startOrderAlarm(60);
     }
 
     // Rich Toast
@@ -158,8 +158,12 @@ export default function RealtimeNotificationBanner() {
           onClick={() => {
             const next = !soundEnabled;
             setSoundEnabled(next);
-            if (next) playOrderChime();
-            toast.info(next ? 'Order Chime Unmuted' : 'Order Chime Muted');
+            if (next) {
+              playOrderChime();
+            } else {
+              stopOrderAlarm();
+            }
+            toast.info(next ? 'Order Chime & Alarm Unmuted' : 'Order Chime & Alarm Muted');
           }}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all border ${
             soundEnabled
@@ -225,16 +229,34 @@ export default function RealtimeNotificationBanner() {
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  stopOrderAlarm();
+                  toast.info('Order alarm silenced');
+                }}
+                className="px-2.5 py-2 bg-red-600/80 hover:bg-red-600 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-all shrink-0 cursor-pointer animate-pulse"
+                title="Silence Repeating Alarm"
+              >
+                <VolumeX className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Silence Alarm</span>
+              </button>
+
               <Link
                 href="/admin/orders"
-                onClick={() => setActiveAlert(null)}
+                onClick={() => {
+                  stopOrderAlarm();
+                  setActiveAlert(null);
+                }}
                 className="px-3.5 py-2 bg-[#DEB853] hover:bg-[#c9a444] text-[#071c05] font-bold text-xs rounded-xl flex items-center gap-1.5 shadow transition-all shrink-0"
               >
                 <span>View Order</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <button
-                onClick={() => setActiveAlert(null)}
+                onClick={() => {
+                  stopOrderAlarm();
+                  setActiveAlert(null);
+                }}
                 className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
                 title="Dismiss"
               >
