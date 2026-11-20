@@ -98,13 +98,19 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Action to track */}
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
             <Link
               href={`/orders/${order.id}/track`}
-              className="w-full bg-[#15370D] text-[#FFFFFF] hover:bg-[#15370D]/90 py-3.5 rounded text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-transform active:scale-95 shadow"
+              className="flex-1 bg-[#15370D] text-[#FFFFFF] hover:bg-[#15370D]/90 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-transform active:scale-95 shadow"
             >
               <span>Track Live Kitchen Progress</span>
               <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/orders"
+              className="px-5 py-3.5 border border-[#15370D]/25 bg-white hover:bg-[#F5EFE1] text-[#15370D] rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center transition-colors"
+            >
+              <span>All My Orders</span>
             </Link>
           </div>
         </div>

@@ -18,11 +18,26 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = (searchParams.get('status') as OrderStatus) || undefined;
     const mode = searchParams.get('mode') || undefined;
+    const uid = searchParams.get('uid') || undefined;
+    const phone = searchParams.get('phone') || undefined;
+    const email = searchParams.get('email') || undefined;
 
     await connectToDatabase();
     const query: Record<string, any> = {};
     if (status) query.status = status;
     if (mode) query.orderMode = mode;
+
+    if (uid) {
+      const orClauses: any[] = [{ 'customer.uid': uid }];
+      if (phone) orClauses.push({ 'customer.phone': phone });
+      if (email) orClauses.push({ 'customer.email': email });
+      query.$or = orClauses;
+    } else if (phone || email) {
+      const orClauses: any[] = [];
+      if (phone) orClauses.push({ 'customer.phone': phone });
+      if (email) orClauses.push({ 'customer.email': email });
+      query.$or = orClauses;
+    }
 
     const dbOrders = await OrderModel.find(query).sort({ createdAt: -1 }).lean();
     if (dbOrders) {
@@ -30,7 +45,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, count: cleanOrders.length, orders: cleanOrders }, { headers: NO_CACHE_HEADERS });
     }
 
-    const orders = dbStore.getOrders({ status, mode });
+    const orders = dbStore.getOrders({ status, mode, uid, phone, email });
     return NextResponse.json({ success: true, count: orders.length, orders }, { headers: NO_CACHE_HEADERS });
   } catch (error) {
     const orders = dbStore.getOrders();

@@ -332,13 +332,27 @@ class SaporiDataStore {
   }
 
   // --- ORDERS ---
-  getOrders(filter?: { status?: OrderStatus; mode?: string }): Order[] {
+  getOrders(filter?: { status?: OrderStatus; mode?: string; uid?: string; phone?: string; email?: string }): Order[] {
     let orders = [...this.data.orders];
     if (filter?.status) {
       orders = orders.filter((o) => o.status === filter.status);
     }
     if (filter?.mode && filter.mode !== 'all') {
       orders = orders.filter((o) => o.orderMode === filter.mode);
+    }
+    if (filter?.uid) {
+      orders = orders.filter(
+        (o) =>
+          o.customer?.uid === filter.uid ||
+          (filter.phone && o.customer?.phone === filter.phone) ||
+          (filter.email && o.customer?.email === filter.email)
+      );
+    } else if (filter?.phone || filter?.email) {
+      orders = orders.filter(
+        (o) =>
+          (filter.phone && o.customer?.phone === filter.phone) ||
+          (filter.email && o.customer?.email === filter.email)
+      );
     }
     return orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }

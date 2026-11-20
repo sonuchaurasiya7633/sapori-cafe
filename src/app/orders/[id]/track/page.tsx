@@ -98,13 +98,22 @@ export default function OrderTrackingPage() {
     <div className="bg-[#F5EFE1] min-h-screen py-8 sm:py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
         <div className="flex items-center justify-between">
-          <Link
-            href="/menu"
-            className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#15370D] hover:underline py-1"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            <span>Back to Menu</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/orders"
+              className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#15370D] hover:underline py-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
+              <span>All My Orders</span>
+            </Link>
+            <span className="text-stone-300">•</span>
+            <Link
+              href="/menu"
+              className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#15370D]/75 hover:text-[#15370D] py-1"
+            >
+              <span>Menu</span>
+            </Link>
+          </div>
           <button
             onClick={() => {
               setRefreshing(true);

@@ -186,6 +186,15 @@ export const Navbar: React.FC = () => {
                 })}
 
                 <Link
+                  href="/orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-[#15370D] bg-[#DEB853]/15 border border-[#DEB853]/40 hover:bg-[#DEB853]/25"
+                >
+                  <ShoppingBag className="w-4 h-4 mr-2 text-[#15370D]" />
+                  <span>My Orders &amp; Tracking</span>
+                </Link>
+
+                <Link
                   href="/search"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-[#15370D] hover:bg-[#F5EFE1]"
