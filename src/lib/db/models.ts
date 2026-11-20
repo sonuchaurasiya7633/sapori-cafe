@@ -88,6 +88,7 @@ const CartItemSchema = new Schema(
 
 const OrderCustomerInfoSchema = new Schema(
   {
+    uid: { type: String, index: true },
     name: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String },

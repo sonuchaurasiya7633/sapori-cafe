@@ -65,6 +65,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Customer name and phone number are required' }, { status: 400 });
     }
 
+    // MANDATORY SIGN-IN VALIDATION:
+    // Any direct online customer order must be authenticated with their user account (uid)
+    if (source === 'customer' && !customer?.uid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Signing in is mandatory to place an order. Please sign in with Google, Phone OTP, or Email to continue.',
+        },
+        { status: 401 }
+      );
+    }
+
     if (orderMode === 'delivery' && !customer?.address) {
       return NextResponse.json({ success: false, error: 'Delivery address is required for doorstep orders' }, { status: 400 });
     }

@@ -77,6 +77,7 @@ export interface CartItem {
 }
 
 export interface OrderCustomerInfo {
+  uid?: string;
   name: string;
   phone: string;
   email?: string;

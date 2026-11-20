@@ -35,6 +35,26 @@ import { toast } from '@/lib/toast';
 import ChangeCredentialsModal from '@/components/admin/ChangeCredentialsModal';
 import RealtimeNotificationBanner from '@/components/admin/RealtimeNotificationBanner';
 
+interface AdminNotificationItem {
+  id: string;
+  orderNumber: string;
+  orderMode: string;
+  total: number;
+  customerName: string;
+  status: string;
+  timestamp: number;
+}
+
+function formatTimeAgo(timestamp: number): string {
+  const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+  if (diffSec < 60) return 'Just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${Math.floor(diffHours / 24)}d ago`;
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -46,6 +66,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [adminEmail, setAdminEmail] = useState('admin@saporicafe.in');
   const [globalSearch, setGlobalSearch] = useState('');
+
+  // Live order notifications & unread badge state
+  const [notifications, setNotifications] = useState<AdminNotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [activePendingCount, setActivePendingCount] = useState<number>(0);
 
   const handleGlobalSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +98,88 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const email = localStorage.getItem('sapori_admin_email');
     if (email) setAdminEmail(email);
   }, []);
+
+  // Live orders notification polling & real-time event listener
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchLiveNotifications = async () => {
+      try {
+        const res = await fetch('/api/orders', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders) && !isCancelled) {
+          const allOrders = data.orders;
+          const pending = allOrders.filter((o: any) =>
+            ['PLACED', 'PENDING_PAYMENT'].includes(o.status)
+          );
+          setActivePendingCount(pending.length);
+
+          const lastReadTime = Number(localStorage.getItem('sapori_admin_last_read_notif') || '0');
+
+          const recent: AdminNotificationItem[] = allOrders.slice(0, 6).map((o: any) => ({
+            id: o.id,
+            orderNumber: o.orderNumber || o.id.slice(-6),
+            orderMode: o.orderMode || 'delivery',
+            total: o.total || 0,
+            customerName: o.customer?.name || 'Customer',
+            status: o.status || 'PLACED',
+            timestamp: new Date(o.createdAt).getTime() || Date.now(),
+          }));
+          setNotifications(recent);
+
+          const unreadNew = recent.filter((n) => n.timestamp > lastReadTime);
+          setUnreadCount(Math.max(pending.length, unreadNew.length));
+        }
+      } catch {
+        // network fallback
+      }
+    };
+
+    fetchLiveNotifications();
+    const interval = setInterval(fetchLiveNotifications, 10000);
+
+    const handleNewOrder = (e: any) => {
+      const alert = e.detail;
+      if (!alert) return;
+      const newItem: AdminNotificationItem = {
+        id: alert.orderId,
+        orderNumber: alert.orderNumber,
+        orderMode: alert.orderMode,
+        total: alert.total,
+        customerName: alert.customerName,
+        status: alert.status || 'PLACED',
+        timestamp: Date.now(),
+      };
+      setNotifications((prev) => [newItem, ...prev.filter((p) => p.id !== alert.orderId)].slice(0, 8));
+      setUnreadCount((c) => c + 1);
+      setActivePendingCount((c) => c + 1);
+    };
+
+    const handleOrderDismiss = () => {
+      fetchLiveNotifications();
+    };
+
+    window.addEventListener('sapori:new_order', handleNewOrder);
+    window.addEventListener('sapori:order_viewed', handleOrderDismiss);
+    window.addEventListener('sapori:order_status_updated', handleOrderDismiss);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+      window.removeEventListener('sapori:new_order', handleNewOrder);
+      window.removeEventListener('sapori:order_viewed', handleOrderDismiss);
+      window.removeEventListener('sapori:order_status_updated', handleOrderDismiss);
+    };
+  }, []);
+
+  const handleOpenNotifications = () => {
+    setShowNotifications(!showNotifications);
+    if (!showNotifications) {
+      setUnreadCount(0);
+      localStorage.setItem('sapori_admin_last_read_notif', String(Date.now()));
+    }
+  };
 
   // Prevent background scroll when mobile sidebar is open
   useEffect(() => {
@@ -121,7 +228,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
-    { label: 'Live Orders', href: '/admin/orders', icon: ShoppingBag, badge: 'Live' },
+    {
+      label: 'Live Orders',
+      href: '/admin/orders',
+      icon: ShoppingBag,
+      badge: activePendingCount > 0 ? `${activePendingCount} New` : 'Live',
+    },
     { label: 'Kitchen Display', href: '/admin/kitchen', icon: ChefHat, badge: 'KDS' },
     { label: 'Menu Catalog', href: '/admin/menu', icon: UtensilsCrossed },
     { label: 'Categories', href: '/admin/categories', icon: Layers },
@@ -160,6 +272,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <div className="flex items-center space-x-2">
+          <Link
+            href="/admin/orders"
+            className="relative w-9 h-9 flex items-center justify-center text-[#F5EFE1] hover:text-[#FFFFFF] hover:bg-[#FFFFFF]/10 rounded-lg transition-colors"
+            title="Live Orders"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-[#15370D] animate-pulse tabular-nums">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
           <Link
             href="/"
             target="_blank"
@@ -414,52 +538,98 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Notifications Menu */}
             <div className="relative" ref={notifRef}>
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={handleOpenNotifications}
                 className="w-9 h-9 rounded-xl border border-[#15370D]/20 bg-[#FFFFFF] hover:bg-[#F5EFE1] flex items-center justify-center text-[#15370D] transition-colors relative"
                 aria-label="View notifications"
+                title={unreadCount > 0 ? `${unreadCount} new order alerts` : 'No new notifications'}
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#15370D] text-[#FFFFFF] text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-[#FFFFFF]">
-                  3
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-600 text-[#FFFFFF] text-[9px] font-black rounded-full flex items-center justify-center border-2 border-[#FFFFFF] animate-pulse tabular-nums shadow-xs">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
 
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-80 bg-[#FFFFFF] border border-[#15370D]/20 rounded-2xl shadow-xl z-50 p-4 space-y-3 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between border-b border-[#15370D]/10 pb-2.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#15370D]">
-                      Live Alerts
-                    </span>
-                    <span className="text-[10px] font-semibold text-[#15370D]/60 font-mono">
-                      Real-time
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2.5 rounded-xl bg-[#F5EFE1]/50 border border-[#15370D]/10 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#15370D]">Kitchen Sync Active</span>
-                        <span className="text-[10px] text-[#15370D]/60 font-mono">Just now</span>
-                      </div>
-                      <p className="text-[11px] text-[#15370D]/75">
-                        KDS is polling incoming guest tickets every 5 seconds.
-                      </p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#15370D]">
+                        Order Notifications
+                      </span>
+                      {activePendingCount > 0 && (
+                        <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[9px] font-bold">
+                          {activePendingCount} pending
+                        </span>
+                      )}
                     </div>
-                    <div className="p-2.5 rounded-xl bg-[#F5EFE1]/50 border border-[#15370D]/10 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#15370D]">Tables Operational</span>
-                        <span className="text-[10px] text-[#15370D]/60 font-mono">10m ago</span>
-                      </div>
-                      <p className="text-[11px] text-[#15370D]/75">
-                        QR Table ordering is ready for Raja Park dining hall.
-                      </p>
-                    </div>
+                    {unreadCount > 0 ? (
+                      <button
+                        onClick={() => {
+                          setUnreadCount(0);
+                          localStorage.setItem('sapori_admin_last_read_notif', String(Date.now()));
+                        }}
+                        className="text-[10px] font-semibold text-[#15370D]/70 hover:text-[#15370D] cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block"></span>
+                        Live Sync
+                      </span>
+                    )}
                   </div>
+
+                  <div className="space-y-2 text-xs max-h-72 overflow-y-auto pr-0.5">
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-[#15370D]/60 space-y-1">
+                        <p className="font-bold">No active notifications</p>
+                        <p className="text-[11px]">All orders have been viewed.</p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => {
+                        const isPending = ['PLACED', 'PENDING_PAYMENT'].includes(n.status);
+                        return (
+                          <Link
+                            key={n.id}
+                            href={`/admin/orders?search=${encodeURIComponent(n.orderNumber)}`}
+                            onClick={() => setShowNotifications(false)}
+                            className={`block p-2.5 rounded-xl border transition-colors ${
+                              isPending
+                                ? 'bg-amber-50/70 border-amber-200/80 hover:bg-amber-100/60'
+                                : 'bg-[#F5EFE1]/40 border-[#15370D]/10 hover:bg-[#F5EFE1]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#15370D]">
+                                #{n.orderNumber}
+                              </span>
+                              <span className="text-[10px] text-[#15370D]/60 font-mono">
+                                {formatTimeAgo(n.timestamp)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between mt-1 text-[11px] text-[#15370D]/80">
+                              <span className="truncate max-w-[140px]">
+                                {n.customerName} • {n.orderMode.toUpperCase()}
+                              </span>
+                              <span className="font-bold text-[#15370D] tabular-nums">
+                                ₹{n.total}
+                              </span>
+                            </div>
+                          </Link>
+                        );
+                      })
+                    )}
+                  </div>
+
                   <Link
                     href="/admin/orders"
                     onClick={() => setShowNotifications(false)}
-                    className="block text-center text-xs font-bold uppercase tracking-wider text-[#15370D] hover:underline pt-1"
+                    className="block text-center text-xs font-bold uppercase tracking-wider text-[#15370D] hover:underline pt-1 border-t border-[#15370D]/10"
                   >
-                    View All Orders →
+                    View All Orders in Manager →
                   </Link>
                 </div>
               )}

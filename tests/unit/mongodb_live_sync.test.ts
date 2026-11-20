@@ -17,7 +17,7 @@ describe('Live Admin to MongoDB Atlas Cloud Real-Time Sync', () => {
     });
 
     // Wait for async MongoDB sync
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, 2500));
 
     // Check directly in MongoDB Atlas collection
     const mongoItem = await MenuItemModel.findOne({ id: sampleItem.id }).lean();
@@ -35,11 +35,14 @@ describe('Live Admin to MongoDB Atlas Cloud Real-Time Sync', () => {
     });
 
     // Wait for async MongoDB sync
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, 2500));
 
     // Check directly in MongoDB Atlas
     const homePage = await CMSPageModel.findOne({ id: 'home' }).lean();
     expect(homePage).toBeDefined();
     expect(homePage?.seoTitle).toBe(testSeoTitle);
+
+    // Reset back to production SAPORI CAFE title
+    dbStore.updateCMSPage('home', { seoTitle: 'SAPORI CAFE' });
   }, 20000);
 });
